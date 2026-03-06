@@ -1,0 +1,39 @@
+<section class="w-full">
+  <div class="card bg-base-100 shadow-sm">
+    <div class="card-body">
+      <h1 class="card-title">Wines</h1>
+      <p class="text-sm opacity-70">Cellr inventory overview</p>
+
+      <% if @wines.any? %>
+        <div class="overflow-x-auto mt-4">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>Winery</th>
+                <th>Wine</th>
+                <th>Vintage</th>
+                <th>Region</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @wines.each do |wine| %>
+                <tr>
+                  <td><%= wine.winery %></td>
+                  <td><%= wine.wine_name %></td>
+                  <td><%= wine.vintage || "NV" %></td>
+                  <td><%= wine.region.presence || "-" %></td>
+                  <td><%= wine.wine_type.presence || "-" %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="alert mt-4">
+          <span>No wines found yet.</span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
