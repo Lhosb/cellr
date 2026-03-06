@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   resources :cellars do
     resources :wines, only: [ :index, :create ]
     resources :invitations, only: [ :index, :create, :destroy ], controller: "cellars/invitations"
+    resources :memberships, only: [ :index, :update, :destroy ], controller: "cellars/memberships"
   end
 
   post "cellars/:cellar_id/wines/scan_label", to: "wines/label_scans#create", as: :scan_cellar_wine_label
