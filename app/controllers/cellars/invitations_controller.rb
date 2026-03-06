@@ -10,7 +10,7 @@ module Cellars
         role: invitation_role
       )
 
-      render json: invitation.as_json(only: [:id, :cellar_id, :email, :role, :token, :accepted_at]), status: :created
+      render json: invitation.as_json(only: [ :id, :cellar_id, :email, :role, :token, :accepted_at ]), status: :created
     rescue ActionController::ParameterMissing => e
       render json: { error: e.message }, status: :bad_request
     rescue ArgumentError, ActiveRecord::RecordInvalid => e
@@ -23,7 +23,7 @@ module Cellars
       user = User.find(params.require(:user_id))
       membership = Cellars::AcceptInvitation.call(token: params.require(:token), user:)
 
-      render json: membership.as_json(only: [:id, :cellar_id, :user_id, :role]), status: :ok
+      render json: membership.as_json(only: [ :id, :cellar_id, :user_id, :role ]), status: :ok
     rescue ActionController::ParameterMissing => e
       render json: { error: e.message }, status: :bad_request
     rescue Cellars::AcceptInvitation::InvitationError => e
