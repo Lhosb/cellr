@@ -11,7 +11,7 @@ module Wines
 
       result = FilterQuery.new(scope: Wine.all, params: { cellar_id: cellar_a.id }).call
 
-      assert_equal [keep.id], result.to_a.map(&:id)
+      assert_equal [ keep.id ], result.to_a.map(&:id)
     end
 
     test "filters by normalized winery and tag" do
@@ -29,7 +29,7 @@ module Wines
 
       result_ids = result.to_a.map(&:id)
 
-      assert_equal [tagged.id], result_ids
+      assert_equal [ tagged.id ], result_ids
       refute_includes result_ids, untagged.id
     end
   end

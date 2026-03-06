@@ -13,8 +13,10 @@ Rails.application.routes.draw do
   root "wines#index"
 
   resources :cellars do
-    resources :wines, only: [:index, :create]
+    resources :wines, only: [ :index, :create ]
+    resources :invitations, only: [ :create ], controller: "cellars/invitations"
   end
 
   post "cellars/:cellar_id/wines/scan_label", to: "wines/label_scans#create", as: :scan_cellar_wine_label
+  post "cellars/invitations/:token/accept", to: "cellars/invitations#accept", as: :accept_cellar_invitation
 end

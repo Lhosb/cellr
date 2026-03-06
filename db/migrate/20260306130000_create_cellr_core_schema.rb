@@ -26,7 +26,7 @@ class CreateCellrCoreSchema < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :cellar_memberships, [:cellar_id, :user_id], unique: true
+    add_index :cellar_memberships, [ :cellar_id, :user_id ], unique: true
 
     create_table :cellar_invitations do |t|
       t.references :cellar, null: false, foreign_key: true
@@ -58,7 +58,7 @@ class CreateCellrCoreSchema < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :wines, [:cellar_id, :canonical_key], unique: true
+    add_index :wines, [ :cellar_id, :canonical_key ], unique: true
     add_index :wines, :normalized_winery
     add_index :wines, :normalized_wine_name
     add_index :wines, :winery, using: :gin, opclass: :gin_trgm_ops
@@ -71,7 +71,7 @@ class CreateCellrCoreSchema < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :tags, [:cellar_id, :name], unique: true
+    add_index :tags, [ :cellar_id, :name ], unique: true
 
     create_table :wine_tags do |t|
       t.references :wine, null: false, foreign_key: true
@@ -80,6 +80,6 @@ class CreateCellrCoreSchema < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    add_index :wine_tags, [:wine_id, :tag_id], unique: true
+    add_index :wine_tags, [ :wine_id, :tag_id ], unique: true
   end
 end

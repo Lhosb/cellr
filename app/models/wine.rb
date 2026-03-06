@@ -21,7 +21,7 @@ class Wine < ApplicationRecord
 
     normalized_winery = normalize_for_key(winery)
     normalized_wine_name = normalize_for_key(wine_name)
-    key = [normalized_winery, normalized_wine_name, vintage.presence || "nv"].join("|")
+    key = [ normalized_winery, normalized_wine_name, vintage.presence || "nv" ].join("|")
 
     exact = scope.where(canonical_key: key)
     return exact if exact.exists?
@@ -46,6 +46,6 @@ class Wine < ApplicationRecord
     self.normalized_wine_name = self.class.normalize_for_key(wine_name)
 
     normalized_vintage = vintage.presence || "nv"
-    self.canonical_key = [normalized_winery, normalized_wine_name, normalized_vintage].join("|")
+    self.canonical_key = [ normalized_winery, normalized_wine_name, normalized_vintage ].join("|")
   end
 end

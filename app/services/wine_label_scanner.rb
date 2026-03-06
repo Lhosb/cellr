@@ -20,13 +20,13 @@ class WineLabelScanner
       parameters: {
         model: ENV.fetch("OPENAI_LABEL_MODEL", "gpt-4o"),
         response_format: { type: "json_object" },
-        messages: [{
+        messages: [ {
           role: "user",
           content: [
             { type: "text", text: PROMPT },
             { type: "image_url", image_url: { url: "data:#{media_type};base64,#{base64_image}" } }
           ]
-        }],
+        } ],
         max_tokens: 300
       }
     )

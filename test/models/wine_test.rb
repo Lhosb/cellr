@@ -33,7 +33,7 @@ class WineTest < ActiveSupport::TestCase
       vintage: 2022
     )
 
-    assert_equal [existing.id], result.pluck(:id)
+    assert_equal [ existing.id ], result.pluck(:id)
   end
 
   test "duplicate candidates falls back to fuzzy search" do
