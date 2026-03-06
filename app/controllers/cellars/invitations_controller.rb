@@ -1,5 +1,16 @@
 module Cellars
   class InvitationsController < ApplicationController
+    def index
+      cellar = Cellar.find(params.require(:cellar_id))
+      invitations = cellar.cellar_invitations.pending.order(created_at: :desc)
+
+      render json: invitations.as_json(only: [ :id, :cellar_id, :email, :role, :token, :accepted_at ]), status: :ok
+    rescue ActionController::ParameterMissing => e
+      render json: { error: e.message }, status: :bad_request
+    rescue ActiveRecord::RecordNotFound => e
+      render json: { error: e.message }, status: :not_found
+    end
+
     def create
       cellar = Cellar.find(params.require(:cellar_id))
       invited_by = User.find(params.require(:invited_by_id))
@@ -28,6 +39,18 @@ module Cellars
       render json: { error: e.message }, status: :bad_request
     rescue Cellars::AcceptInvitation::InvitationError => e
       render json: { error: e.message }, status: :unprocessable_entity
+    rescue ActiveRecord::RecordNotFound => e
+      render json: { error: e.message }, status: :not_found
+    end
+
+    def destroy
+      cellar = Cellar.find(params.require(:cellar_id))
+      invitation = cellar.cellar_invitations.find(params.require(:id))
+      invitation.destroy!
+
+      head :no_content
+    rescue ActionController::ParameterMissing => e
+      render json: { error: e.message }, status: :bad_request
     rescue ActiveRecord::RecordNotFound => e
       render json: { error: e.message }, status: :not_found
     end

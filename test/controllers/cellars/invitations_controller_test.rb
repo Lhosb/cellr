@@ -2,6 +2,35 @@ require "test_helper"
 
 module Cellars
   class InvitationsControllerTest < ActionDispatch::IntegrationTest
+    test "index returns pending invitations for cellar" do
+      owner = User.create!(email: "owner-index@example.com")
+      cellar = owner.cellar_memberships.find_by!(role: :owner).cellar
+
+      pending = CellarInvitation.create!(
+        cellar:,
+        invited_by: owner,
+        email: "pending@example.com",
+        role: :viewer,
+        token: "pending-token"
+      )
+      CellarInvitation.create!(
+        cellar:,
+        invited_by: owner,
+        email: "accepted@example.com",
+        role: :viewer,
+        token: "accepted-token",
+        accepted_at: Time.current
+      )
+
+      get cellar_invitations_path(cellar)
+
+      assert_response :ok
+      body = JSON.parse(response.body)
+      assert_equal 1, body.size
+      assert_equal pending.id, body.first.fetch("id")
+      assert_equal "pending@example.com", body.first.fetch("email")
+    end
+
     test "create invitation returns created payload" do
       owner = User.create!(email: "owner-invites@example.com")
       cellar = owner.cellar_memberships.find_by!(role: :owner).cellar
@@ -83,6 +112,24 @@ module Cellars
 
       assert_response :unprocessable_entity
       assert_match "does not match", JSON.parse(response.body)["error"]
+    end
+
+    test "destroy invitation removes record" do
+      owner = User.create!(email: "owner-destroy@example.com")
+      cellar = owner.cellar_memberships.find_by!(role: :owner).cellar
+      invitation = CellarInvitation.create!(
+        cellar:,
+        invited_by: owner,
+        email: "remove-me@example.com",
+        role: :viewer,
+        token: "destroy-token"
+      )
+
+      assert_difference("CellarInvitation.count", -1) do
+        delete cellar_invitation_path(cellar, invitation)
+      end
+
+      assert_response :no_content
     end
   end
 end
