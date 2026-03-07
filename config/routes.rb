@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   root "wines#index"
 
   resources :cellars do
+    member do
+      get :settings
+    end
     resources :wines, only: [ :index, :create, :edit, :update ]
     resources :invitations, only: [ :index, :create, :destroy ], controller: "cellars/invitations"
     resources :memberships, only: [ :index, :update, :destroy ], controller: "cellars/memberships"

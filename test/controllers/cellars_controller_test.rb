@@ -97,4 +97,35 @@ class CellarsControllerTest < ActionDispatch::IntegrationTest
     assert_match summer_wine.wine_name, response.body
     assert_no_match winter_wine.wine_name, response.body
   end
+
+  test "show page links to settings and hides management forms" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+
+    get cellar_path(cellar)
+
+    assert_response :ok
+    assert_match "Settings", response.body
+    assert_no_match "Edit Cellar Name", response.body
+    assert_no_match "Invite People", response.body
+  end
+
+  test "settings page shows rename and invite management" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+
+    get settings_cellar_path(cellar)
+
+    assert_response :ok
+    assert_match "Cellar Settings", response.body
+    assert_match "Edit Cellar Name", response.body
+    assert_match "Invite People", response.body
+  end
+
+  test "update renames cellar" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+
+    patch cellar_path(cellar), params: { name: "Weekend Cellar" }
+
+    assert_redirected_to cellar_path(cellar)
+    assert_equal "Weekend Cellar", cellar.reload.name
+  end
 end
