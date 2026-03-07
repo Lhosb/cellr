@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_07_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_07_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -113,7 +113,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_030000) do
     t.string "wine_name", null: false
     t.string "wine_type"
     t.string "winery", null: false
-    t.index ["cellar_id", "canonical_key"], name: "index_wines_on_cellar_id_and_canonical_key", unique: true
+    t.index ["cellar_id", "canonical_key"], name: "index_wines_on_cellar_id_and_canonical_key"
     t.index ["cellar_id"], name: "index_wines_on_cellar_id"
     t.index ["normalized_wine_name"], name: "index_wines_on_normalized_wine_name"
     t.index ["normalized_winery"], name: "index_wines_on_normalized_winery"

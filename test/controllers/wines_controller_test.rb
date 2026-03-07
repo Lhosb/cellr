@@ -30,11 +30,11 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Strawberry, citrus, saline finish", body["tasting_notes"]
   end
 
-  test "create returns conflict and duplicates when canonical duplicate exists" do
+  test "create allows duplicate wines in the same cellar" do
     cellar = build_cellar(owner: @user)
-    existing = cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
+    cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
 
-    assert_no_difference("Wine.count") do
+    assert_difference("Wine.count", 1) do
       post cellar_wines_path(cellar), params: {
         wine: {
           winery: "  domaine tempier ",
@@ -44,10 +44,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
       }, as: :json
     end
 
-    assert_response :conflict
-    body = JSON.parse(response.body)
-    assert_equal "Duplicate candidates found", body["error"]
-    assert_equal existing.id, body.fetch("duplicates").first.fetch("id")
+    assert_response :created
   end
 
   test "edit renders successfully" do
@@ -83,7 +80,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Blackberry, pepper, long finish", wine.tasting_notes
   end
 
-  test "update returns conflict when duplicate candidate exists" do
+  test "update allows updating wine to match another existing wine" do
     cellar = build_cellar(owner: @user)
     cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
     wine = cellar.wines.create!(winery: "Different", wine_name: "Label", vintage: 2020)
@@ -96,9 +93,8 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
       }
     }, as: :json
 
-    assert_response :conflict
-    body = JSON.parse(response.body)
-    assert_equal "Duplicate candidates found", body["error"]
+    assert_response :ok
+    assert_equal "domaine tempier", wine.reload.winery
   end
 
   test "create assigns comma-separated tags" do
