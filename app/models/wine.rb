@@ -9,7 +9,6 @@ class Wine < ApplicationRecord
   before_validation :normalize_identity
 
   validates :winery, :wine_name, :normalized_winery, :normalized_wine_name, :canonical_key, presence: true
-  validates :canonical_key, uniqueness: { scope: :cellar_id }
 
   pg_search_scope :search_text,
                   against: { winery: "A", wine_name: "A", region: "B", varietal: "B", notes: "C", tasting_notes: "C" },

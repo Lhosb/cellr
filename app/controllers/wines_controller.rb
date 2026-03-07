@@ -9,21 +9,6 @@ class WinesController < ApplicationController
   def create
     attributes, tag_names = normalized_wine_payload
 
-    duplicates = Wine.duplicate_candidates_for(
-      cellar: @cellar,
-      winery: attributes["winery"],
-      wine_name: attributes["wine_name"],
-      vintage: attributes["vintage"]
-    )
-
-    if duplicates.exists?
-      respond_to do |format|
-        format.html { redirect_to cellar_path(@cellar), alert: "Duplicate candidates found. Wine was not added." }
-        format.json { render json: { error: "Duplicate candidates found", duplicates: duplicates.limit(5).as_json(only: [ :id, :winery, :wine_name, :vintage ]) }, status: :conflict }
-      end
-      return
-    end
-
     wine = nil
     ActiveRecord::Base.transaction do
       wine = @cellar.wines.create!(attributes)
@@ -41,21 +26,6 @@ class WinesController < ApplicationController
 
   def update
     attributes, tag_names = normalized_wine_payload
-
-    duplicates = Wine.duplicate_candidates_for(
-      cellar: @cellar,
-      winery: attributes["winery"],
-      wine_name: attributes["wine_name"],
-      vintage: attributes["vintage"]
-    ).where.not(id: @wine.id)
-
-    if duplicates.exists?
-      respond_to do |format|
-        format.html { redirect_to edit_cellar_wine_path(@cellar, @wine), alert: "Duplicate candidates found. Wine was not updated." }
-        format.json { render json: { error: "Duplicate candidates found", duplicates: duplicates.limit(5).as_json(only: [ :id, :winery, :wine_name, :vintage ]) }, status: :conflict }
-      end
-      return
-    end
 
     updated = false
     ActiveRecord::Base.transaction do
