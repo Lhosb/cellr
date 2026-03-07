@@ -1,30 +1,72 @@
 class CellarsController < ApplicationController
+  before_action :set_cellar, only: [ :show, :update, :destroy ]
+
   def index
-    @cellars = Cellar.order(created_at: :desc)
-    render json: @cellars
+    @cellars = accessible_cellars.includes(:owner).order(created_at: :desc)
+    @user = current_user
+    @pending_invitations = current_user.pending_invitations.includes(:cellar, :invited_by).order(created_at: :desc)
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @cellars }
+    end
   end
 
   def show
-    @cellar = Cellar.find(params[:id])
-    render json: @cellar
+    @wines = Wines::FilterQuery.new(scope: @cellar.wines, params: filter_params).call
+    @memberships = @cellar.cellar_memberships.includes(:user).order(created_at: :asc)
+    @pending_invitations = @cellar.cellar_invitations.pending.order(created_at: :desc)
+
+    current_membership = @memberships.find { |membership| membership.user_id == current_user.id }
+    @can_manage_sharing = @cellar.owner_id == current_user.id || current_membership&.owner? || current_membership&.editor?
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @cellar }
+    end
   end
 
   def create
-    owner = User.find(params.require(:owner_id))
-    cellar = Cellar.create!(name: params.require(:name), owner: owner)
-    CellarMembership.find_or_create_by!(cellar:, user: owner) { |membership| membership.role = :owner }
-    render json: cellar, status: :created
+    cellar = Cellar.create!(name: params.require(:name), owner: current_user)
+    CellarMembership.find_or_create_by!(cellar:, user: current_user) { |membership| membership.role = :owner }
+
+    respond_to do |format|
+      format.html { redirect_to cellar_path(cellar), notice: "Cellar created" }
+      format.json { render json: cellar, status: :created }
+    end
   end
 
   def update
-    cellar = Cellar.find(params[:id])
-    cellar.update!(name: params.require(:name))
-    render json: cellar
+    @cellar.update!(name: params.require(:name))
+
+    respond_to do |format|
+      format.html { redirect_to cellar_path(@cellar), notice: "Cellar updated" }
+      format.json { render json: @cellar }
+    end
   end
 
   def destroy
-    cellar = Cellar.find(params[:id])
-    cellar.destroy!
-    head :no_content
+    @cellar.destroy!
+
+    respond_to do |format|
+      format.html { redirect_to cellars_path, notice: "Cellar deleted" }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+
+  def filter_params
+    params.permit(:q, :winery, :region, :wine_type, :tag)
+  end
+
+  def set_cellar
+    @cellar = accessible_cellars.find(params[:id])
+  end
+
+  def accessible_cellars
+    Cellar.left_outer_joins(:cellar_memberships)
+      .where("cellars.owner_id = :user_id OR cellar_memberships.user_id = :user_id", user_id: current_user.id)
+      .distinct
   end
 end

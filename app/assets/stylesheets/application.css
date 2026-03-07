@@ -8,3 +8,133 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* ─────────────────────────────────────────
+   CELLR — Design Tokens
+   app/assets/stylesheets/application.css
+───────────────────────────────────────── */
+
+@theme {
+  /* Fonts */
+  --font-display: "Fraunces", serif;
+  --font-body: "Outfit", sans-serif;
+
+  /* Parchment scale */
+  --color-parchment: #f7f3ed;
+  --color-parchment-2: #ede8df;
+
+  /* Ink scale */
+  --color-ink: #1c1510;
+  --color-ink-light: #6b5e52;
+  --color-ink-faint: #b5a99e;
+
+  /* Brand */
+  --color-terracotta: #b85c3a;
+  --color-terra-light: #f2e8e3;
+  --color-sage: #5c7260;
+  --color-sage-light: #e6ede7;
+  --color-gold: #c49a3c;
+  --color-gold-light: #f5edda;
+
+  /* Wine type accents */
+  --color-wine-red: #b85c3a;
+  --color-wine-white: #c49a3c;
+  --color-wine-rose: #d4708a;
+  --color-wine-bubble: #7faec4;
+}
+
+/* ─────────────────────────────────────────
+   DaisyUI custom theme
+───────────────────────────────────────── */
+@plugin "daisyui/theme" {
+  name: "cellr";
+  default: true;
+
+  --color-base-100: #f7f3ed;
+  --color-base-200: #ede8df;
+  --color-base-300: #ddd5c8;
+  --color-base-content: #1c1510;
+
+  --color-primary: #b85c3a;
+  --color-primary-content: #ffffff;
+
+  --color-secondary: #5c7260;
+  --color-secondary-content: #ffffff;
+
+  --color-accent: #c49a3c;
+  --color-accent-content: #1c1510;
+
+  --color-neutral: #1c1510;
+  --color-neutral-content: #f7f3ed;
+
+  --color-info: #7faec4;
+  --color-success: #5c7260;
+  --color-warning: #c49a3c;
+  --color-error: #b85c3a;
+
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+  --rounded-badge: 999px;
+}
+
+/* Keep app readable even when OS/browser dark mode is enabled */
+:root,
+body[data-theme="cellr"] {
+  color-scheme: light;
+  --color-base-100: #f7f3ed;
+  --color-base-200: #ede8df;
+  --color-base-300: #ddd5c8;
+  --color-base-content: #1c1510;
+  --color-primary: #b85c3a;
+  --color-primary-content: #ffffff;
+  --color-secondary: #5c7260;
+  --color-secondary-content: #ffffff;
+  --color-accent: #c49a3c;
+  --color-accent-content: #1c1510;
+  --color-neutral: #1c1510;
+  --color-neutral-content: #f7f3ed;
+}
+
+/* ─────────────────────────────────────────
+   Base
+───────────────────────────────────────── */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    font-family: var(--font-body);
+  }
+
+  body {
+    background-color: var(--color-parchment);
+    color: var(--color-ink);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Paper texture */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+@import "./components.css";

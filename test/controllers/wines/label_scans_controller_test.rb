@@ -3,6 +3,10 @@ require "stringio"
 
 module Wines
   class LabelScansControllerTest < ActionDispatch::IntegrationTest
+    setup do
+      sign_in_as
+    end
+
     test "create returns parsed scan payload" do
       cellar = build_cellar
       payload = {

@@ -1,0 +1,38 @@
+<section class="space-y-4 max-w-xl mx-auto">
+  <div class="flex items-baseline justify-between">
+    <h1 class="font-display text-2xl font-bold italic">Log in</h1>
+  </div>
+
+  <article class="wine-card">
+    <div class="wine-card__body space-y-3">
+      <% if resource.errors.any? %>
+        <div class="alert alert-error">
+          <span><%= resource.errors.full_messages.to_sentence %></span>
+        </div>
+      <% end %>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "grid grid-cols-1 gap-3" }) do |f| %>
+        <div>
+          <label class="label"><span class="label-text">Email</span></label>
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "input input-bordered w-full" %>
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Password</span></label>
+          <%= f.password_field :password, autocomplete: "current-password", class: "input input-bordered w-full" %>
+        </div>
+
+        <% if devise_mapping.rememberable? %>
+          <label class="label cursor-pointer justify-start gap-2">
+            <%= f.check_box :remember_me, class: "checkbox checkbox-sm" %>
+            <span class="label-text">Remember me</span>
+          </label>
+        <% end %>
+
+        <%= f.submit "Log in", class: "btn btn-primary" %>
+      <% end %>
+
+      <%= render "devise/shared/auth_links" %>
+    </div>
+  </article>
+</section>

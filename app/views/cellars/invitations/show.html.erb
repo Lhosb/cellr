@@ -1,0 +1,19 @@
+<section class="space-y-4">
+  <div class="wine-card">
+    <div class="wine-card__body space-y-3">
+      <h1 class="font-display text-2xl font-bold">Cellar Invitation</h1>
+
+      <p class="text-sm" style="color:var(--color-ink-light)">
+        <strong><%= @invitation.cellar.name %></strong> invited <%= @invitation.email %> as <%= @invitation.role.titleize %>.
+      </p>
+
+      <% if @invitation.accepted_at.present? %>
+        <p class="text-sm" style="color:var(--color-ink-light)">This invitation has already been accepted.</p>
+      <% elsif @can_accept %>
+        <%= button_to "Join Cellar", accept_cellar_invitation_path(@invitation.token), method: :post, class: "btn btn-sm" %>
+      <% else %>
+        <p class="text-sm" style="color:var(--color-ink-light)">This invite is for a different account. Sign in as <%= @invitation.email %> to accept it.</p>
+      <% end %>
+    </div>
+  </div>
+</section>

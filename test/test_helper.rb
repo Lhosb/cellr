@@ -13,3 +13,12 @@ class ActiveSupport::TestCase
     Cellar.create!(name:, owner:)
   end
 end
+
+class ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+
+  def sign_in_as(user = build_user)
+    sign_in user
+    user
+  end
+end

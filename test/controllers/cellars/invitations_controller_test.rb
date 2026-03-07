@@ -2,6 +2,10 @@ require "test_helper"
 
 module Cellars
   class InvitationsControllerTest < ActionDispatch::IntegrationTest
+    setup do
+      sign_in_as
+    end
+
     test "index returns pending invitations for cellar" do
       owner = User.create!(email: "owner-index@example.com")
       cellar = owner.cellar_memberships.find_by!(role: :owner).cellar
@@ -22,7 +26,7 @@ module Cellars
         accepted_at: Time.current
       )
 
-      get cellar_invitations_path(cellar)
+      get cellar_invitations_path(cellar), as: :json
 
       assert_response :ok
       body = JSON.parse(response.body)
@@ -40,7 +44,7 @@ module Cellars
           invited_by_id: owner.id,
           email: "friend@example.com",
           role: "editor"
-        }
+        }, as: :json
       end
 
       assert_response :created
@@ -60,7 +64,7 @@ module Cellars
           invited_by_id: owner.id,
           email: "friend@example.com",
           role: "not-a-role"
-        }
+        }, as: :json
       end
 
       assert_response :unprocessable_entity
@@ -81,7 +85,7 @@ module Cellars
       )
 
       assert_difference("CellarMembership.count", 1) do
-        post accept_cellar_invitation_path(invitation.token), params: { user_id: invited.id }
+        post accept_cellar_invitation_path(invitation.token), params: { user_id: invited.id }, as: :json
       end
 
       assert_response :ok
@@ -90,6 +94,50 @@ module Cellars
       assert_equal invited.id, body["user_id"]
       assert_equal "editor", body["role"]
       assert invitation.reload.accepted_at.present?
+    end
+
+    test "show invitation page renders for invited user" do
+      inviter = User.create!(email: "inviter-show@example.com")
+      invited = User.create!(email: "invitee-show@example.com")
+      cellar = inviter.cellar_memberships.find_by!(role: :owner).cellar
+
+      invitation = CellarInvitation.create!(
+        cellar:,
+        invited_by: inviter,
+        email: invited.email,
+        role: :viewer,
+        token: "show-token"
+      )
+
+      sign_in invited
+      get cellar_invitation_token_path(invitation.token)
+
+      assert_response :ok
+      assert_match "Cellar Invitation", response.body
+      assert_match cellar.name, response.body
+    end
+
+    test "accept invitation via html uses current user" do
+      inviter = User.create!(email: "inviter-accept-html@example.com")
+      invited = User.create!(email: "invitee-accept-html@example.com")
+      cellar = inviter.cellar_memberships.find_by!(role: :owner).cellar
+
+      invitation = CellarInvitation.create!(
+        cellar:,
+        invited_by: inviter,
+        email: invited.email,
+        role: :editor,
+        token: "accept-html-token"
+      )
+
+      sign_in invited
+
+      assert_difference("CellarMembership.count", 1) do
+        post accept_cellar_invitation_path(invitation.token)
+      end
+
+      assert_redirected_to cellar_path(cellar)
+      assert_equal "editor", CellarMembership.find_by!(cellar:, user: invited).role
     end
 
     test "accept invitation returns unprocessable entity for mismatched email" do
@@ -107,7 +155,7 @@ module Cellars
       )
 
       assert_no_difference("CellarMembership.count") do
-        post accept_cellar_invitation_path(invitation.token), params: { user_id: wrong_user.id }
+        post accept_cellar_invitation_path(invitation.token), params: { user_id: wrong_user.id }, as: :json
       end
 
       assert_response :unprocessable_entity
@@ -126,7 +174,7 @@ module Cellars
       )
 
       assert_difference("CellarInvitation.count", -1) do
-        delete cellar_invitation_path(cellar, invitation)
+        delete cellar_invitation_path(cellar, invitation), as: :json
       end
 
       assert_response :no_content

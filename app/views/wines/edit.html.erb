@@ -1,0 +1,65 @@
+<section class="space-y-4">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h1 class="font-display text-2xl font-bold">Edit Wine</h1>
+      <p class="text-sm" style="color:var(--color-ink-light)"><%= @cellar.name %> · <%= @wine.winery %> · <%= @wine.wine_name %></p>
+    </div>
+    <%= link_to "Back", cellar_path(@cellar), class: "btn btn-sm" %>
+  </div>
+
+  <article class="wine-card">
+    <div class="wine-card__body">
+      <%= form_with model: [@cellar, @wine], scope: :wine, method: :patch, class: "grid grid-cols-1 gap-2" do |form| %>
+        <div>
+          <label class="label"><span class="label-text">Winery</span></label>
+          <%= form.text_field :winery, required: true, class: "input input-bordered input-sm w-full" %>
+        </div>
+        <div>
+          <label class="label"><span class="label-text">Wine name</span></label>
+          <%= form.text_field :wine_name, required: true, class: "input input-bordered input-sm w-full" %>
+        </div>
+        <div>
+          <label class="label"><span class="label-text">Varietal</span></label>
+          <%= form.text_field :varietal, class: "input input-bordered input-sm w-full" %>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="label"><span class="label-text">Vintage</span></label>
+            <%= form.number_field :vintage, min: 1900, max: 2100, class: "input input-bordered input-sm w-full" %>
+          </div>
+          <div>
+            <label class="label"><span class="label-text">Wine type</span></label>
+            <%= form.select :wine_type, options_for_select([["", ""], ["Red", "red"], ["White", "white"], ["Rosé", "rosé"], ["Sparkling", "sparkling"], ["Dessert", "dessert"], ["Fortified", "fortified"]], @wine.wine_type), {}, class: "select select-bordered select-sm w-full" %>
+          </div>
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Region</span></label>
+          <%= form.text_field :region, class: "input input-bordered input-sm w-full" %>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="label"><span class="label-text">Bottle size</span></label>
+            <%= form.select :bottle_size_ml, options_for_select(bottle_size_options, @wine.bottle_size_ml.presence || 750), {}, class: "select select-bordered select-sm w-full" %>
+          </div>
+          <div>
+            <label class="label"><span class="label-text">Purchase price ($)</span></label>
+            <%= form.number_field :purchase_price, value: format("%.2f", @wine.purchase_price_cents.to_i / 100.0), step: 0.01, min: 0, placeholder: "0.00", class: "input input-bordered input-sm w-full" %>
+          </div>
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Tags (comma-separated)</span></label>
+          <%= form.text_field :tag_list, value: @wine.tags.order(:name).pluck(:name).join(", "), placeholder: "date night, special, gift", class: "input input-bordered input-sm w-full" %>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <%= form.submit "Save Changes", class: "btn btn-primary btn-sm" %>
+          <%= link_to "Cancel", cellar_path(@cellar), class: "btn btn-sm" %>
+        </div>
+      <% end %>
+    </div>
+  </article>
+</section>

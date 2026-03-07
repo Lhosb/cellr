@@ -2,13 +2,17 @@ require "test_helper"
 
 module Cellars
   class MembershipsControllerTest < ActionDispatch::IntegrationTest
+    setup do
+      sign_in_as
+    end
+
     test "index returns cellar memberships with user payload" do
       owner = User.create!(email: "owner-members-index@example.com")
       cellar = owner.cellar_memberships.find_by!(role: :owner).cellar
       viewer = User.create!(email: "viewer-members-index@example.com")
       CellarMembership.create!(cellar:, user: viewer, role: :viewer)
 
-      get cellar_memberships_path(cellar)
+      get cellar_memberships_path(cellar), as: :json
 
       assert_response :ok
       body = JSON.parse(response.body)
@@ -30,7 +34,7 @@ module Cellars
       membership = CellarMembership.create!(cellar:, user: viewer, role: :viewer)
 
       assert_difference("CellarMembership.count", -1) do
-        delete cellar_membership_path(cellar, membership)
+        delete cellar_membership_path(cellar, membership), as: :json
       end
 
       assert_response :no_content
@@ -42,7 +46,7 @@ module Cellars
       viewer = User.create!(email: "viewer-members-update@example.com")
       membership = CellarMembership.create!(cellar:, user: viewer, role: :viewer)
 
-      patch cellar_membership_path(cellar, membership), params: { role: "editor" }
+      patch cellar_membership_path(cellar, membership), params: { role: "editor" }, as: :json
 
       assert_response :ok
       body = JSON.parse(response.body)
@@ -56,7 +60,7 @@ module Cellars
       viewer = User.create!(email: "viewer-members-invalid-role@example.com")
       membership = CellarMembership.create!(cellar:, user: viewer, role: :viewer)
 
-      patch cellar_membership_path(cellar, membership), params: { role: "not-a-role" }
+      patch cellar_membership_path(cellar, membership), params: { role: "not-a-role" }, as: :json
 
       assert_response :unprocessable_entity
       assert_match "not a valid role", JSON.parse(response.body).fetch("error")
@@ -69,7 +73,7 @@ module Cellars
       owner_membership = cellar.cellar_memberships.find_by!(user: owner)
 
       assert_no_difference("CellarMembership.count") do
-        delete cellar_membership_path(cellar, owner_membership)
+        delete cellar_membership_path(cellar, owner_membership), as: :json
       end
 
       assert_response :unprocessable_entity
@@ -81,7 +85,7 @@ module Cellars
       cellar = owner.cellar_memberships.find_by!(role: :owner).cellar
       owner_membership = cellar.cellar_memberships.find_by!(user: owner)
 
-      patch cellar_membership_path(cellar, owner_membership), params: { role: "editor" }
+      patch cellar_membership_path(cellar, owner_membership), params: { role: "editor" }, as: :json
 
       assert_response :unprocessable_entity
       assert_match "cannot be changed", JSON.parse(response.body).fetch("error")

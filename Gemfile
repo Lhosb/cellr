@@ -62,3 +62,7 @@ end
 gem "tailwindcss-rails", "~> 4.4"
 gem "pg_search", "~> 2.3"
 gem "ruby-openai", "~> 8.3"
+
+gem "devise", "~> 5.0"
+gem "flipper", "~> 1.3"
+gem "flipper-active_record", "~> 1.3"

@@ -1,5 +1,16 @@
 module Cellars
   class InvitationsController < ApplicationController
+    def show
+      @invitation = CellarInvitation.find_by(token: params.require(:token))
+
+      if @invitation.nil?
+        redirect_to root_path, alert: "Invitation not found"
+        return
+      end
+
+      @can_accept = @invitation.accepted_at.nil? && @invitation.email.casecmp?(current_user.email)
+    end
+
     def index
       cellar = Cellar.find(params.require(:cellar_id))
       invitations = cellar.cellar_invitations.pending.order(created_at: :desc)
@@ -21,7 +32,10 @@ module Cellars
         role: invitation_role
       )
 
-      render json: invitation.as_json(only: [ :id, :cellar_id, :email, :role, :token, :accepted_at ]), status: :created
+      respond_to do |format|
+        format.html { redirect_to cellar_path(cellar), notice: "Invitation created" }
+        format.json { render json: invitation.as_json(only: [ :id, :cellar_id, :email, :role, :token, :accepted_at ]), status: :created }
+      end
     rescue ActionController::ParameterMissing => e
       render json: { error: e.message }, status: :bad_request
     rescue ArgumentError, ActiveRecord::RecordInvalid => e
@@ -31,16 +45,29 @@ module Cellars
     end
 
     def accept
-      user = User.find(params.require(:user_id))
-      membership = Cellars::AcceptInvitation.call(token: params.require(:token), user:)
+      token = params.require(:token)
+      user = params[:user_id].present? ? User.find(params.require(:user_id)) : current_user
+      membership = Cellars::AcceptInvitation.call(token:, user:)
 
-      render json: membership.as_json(only: [ :id, :cellar_id, :user_id, :role ]), status: :ok
-    rescue ActionController::ParameterMissing => e
-      render json: { error: e.message }, status: :bad_request
+      respond_to do |format|
+        format.html { redirect_to cellar_path(membership.cellar), notice: "Invitation accepted" }
+        format.json { render json: membership.as_json(only: [ :id, :cellar_id, :user_id, :role ]), status: :ok }
+      end
     rescue Cellars::AcceptInvitation::InvitationError => e
-      render json: { error: e.message }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { redirect_to cellar_invitation_token_path(params[:token]), alert: e.message }
+        format.json { render json: { error: e.message }, status: :unprocessable_entity }
+      end
     rescue ActiveRecord::RecordNotFound => e
-      render json: { error: e.message }, status: :not_found
+      respond_to do |format|
+        format.html { redirect_to root_path, alert: e.message }
+        format.json { render json: { error: e.message }, status: :not_found }
+      end
+    rescue ActionController::ParameterMissing => e
+      respond_to do |format|
+        format.html { redirect_to root_path, alert: e.message }
+        format.json { render json: { error: e.message }, status: :bad_request }
+      end
     end
 
     def destroy
@@ -48,7 +75,10 @@ module Cellars
       invitation = cellar.cellar_invitations.find(params.require(:id))
       invitation.destroy!
 
-      head :no_content
+      respond_to do |format|
+        format.html { redirect_to cellar_path(cellar), notice: "Invitation revoked" }
+        format.json { head :no_content }
+      end
     rescue ActionController::ParameterMissing => e
       render json: { error: e.message }, status: :bad_request
     rescue ActiveRecord::RecordNotFound => e

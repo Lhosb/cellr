@@ -7,3 +7,17 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+if Rails.env.development?
+  user = User.find_or_initialize_by(email: "test@mail.com")
+  if user.new_record? || user.invited?
+    user.password = "password123"
+    user.password_confirmation = "password123"
+    user.name = "Test User"
+    user.save!
+    Cellars::ProvisionDefaultCellar.call(user: user) unless user.cellar_memberships.exists?(role: :owner)
+    puts "Seeded test user: test@mail.com / password123"
+  else
+    puts "Test user already exists: test@mail.com"
+  end
+end
