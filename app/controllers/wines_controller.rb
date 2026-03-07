@@ -83,7 +83,7 @@ class WinesController < ApplicationController
   end
 
   def wine_params
-    params.require(:wine).permit(:winery, :wine_name, :vintage, :varietal, :wine_type, :region, :bottle_size_ml, :purchase_price_cents, :purchase_price, :tag_list)
+    params.require(:wine).permit(:winery, :wine_name, :vintage, :varietal, :wine_type, :region, :bottle_size_ml, :purchase_price_cents, :purchase_price, :tag_list, :notes, :tasting_notes)
   end
 
   def normalized_wine_payload

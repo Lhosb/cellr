@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_07_022218) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_07_030000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -103,8 +103,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_022218) do
     t.datetime "created_at", null: false
     t.string "normalized_wine_name", null: false
     t.string "normalized_winery", null: false
+    t.text "notes"
     t.integer "purchase_price_cents", default: 0, null: false
     t.string "region"
+    t.text "tasting_notes"
     t.datetime "updated_at", null: false
     t.string "varietal"
     t.integer "vintage"

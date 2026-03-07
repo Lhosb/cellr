@@ -29,9 +29,10 @@
       <%= form.submit "Filter", class: "btn btn-xs" %>
     </label>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
       <%= form.text_field :winery, value: params[:winery], placeholder: "Winery", class: "input input-bordered input-sm w-full" %>
       <%= form.text_field :region, value: params[:region], placeholder: "Region", class: "input input-bordered input-sm w-full" %>
+      <%= form.text_field :tag, value: params[:tag], placeholder: "Tag", class: "input input-bordered input-sm w-full" %>
       <%= form.select :wine_type, options_for_select([["Any type", ""], ["Red", "red"], ["White", "white"], ["Rosé", "rosé"], ["Sparkling", "sparkling"], ["Dessert", "dessert"], ["Fortified", "fortified"]], params[:wine_type]), {}, class: "select select-bordered select-sm w-full" %>
     </div>
   <% end %>
@@ -44,6 +45,16 @@
     <% end %>
     <%= link_to "Reset", cellar_path(@cellar), class: "chip" %>
   </div>
+
+  <% if @cellar.tags.any? %>
+    <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none">
+      <%= link_to "All tags", request.query_parameters.except(:tag), class: "chip #{params[:tag].blank? ? 'chip--active' : ''}" %>
+      <% @cellar.tags.order(:name).each do |tag| %>
+        <% selected = params[:tag].to_s.casecmp?(tag.name) %>
+        <%= link_to "##{tag.name}", request.query_parameters.merge(tag: tag.name), class: "chip #{selected ? 'chip--active' : ''}" %>
+      <% end %>
+    </div>
+  <% end %>
 
   <details class="wine-card details-toggle">
     <summary class="wine-card__body cursor-pointer flex items-center justify-between list-none">
@@ -111,6 +122,16 @@
         <div>
           <label class="label"><span class="label-text">Tags (comma-separated)</span></label>
           <%= form.text_field :tag_list, placeholder: "date night, special, gift", class: "input input-bordered input-sm w-full" %>
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Notes</span></label>
+          <%= form.text_area :notes, rows: 2, placeholder: "Cellar notes, pairing ideas, etc.", class: "textarea textarea-bordered textarea-sm w-full" %>
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Tasting notes</span></label>
+          <%= form.text_area :tasting_notes, rows: 3, placeholder: "Aromas, palate, finish…", class: "textarea textarea-bordered textarea-sm w-full" %>
         </div>
 
         <%= form.submit "Add Wine", class: "btn btn-sm btn-primary" %>
@@ -207,6 +228,14 @@
                   <span class="chip" style="padding:0.15rem 0.55rem;font-size:0.6rem"><%= tag.name %></span>
                 <% end %>
               </div>
+            <% end %>
+
+            <% if wine.notes.present? %>
+              <p class="text-xs mt-2" style="color:var(--color-ink-light)"><strong>Notes:</strong> <%= truncate(wine.notes, length: 140) %></p>
+            <% end %>
+
+            <% if wine.tasting_notes.present? %>
+              <p class="text-xs mt-1" style="color:var(--color-ink-light)"><strong>Tasting:</strong> <%= truncate(wine.tasting_notes, length: 180) %></p>
             <% end %>
           </div>
         <% end %>

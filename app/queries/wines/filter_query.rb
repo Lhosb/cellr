@@ -14,7 +14,7 @@ module Wines
       relation = relation.where(wine_type:) if wine_type.present?
       relation = relation.joins(:tags).where(tags: { name: normalize(tag) }) if tag.present?
 
-      relation.includes(:tags).distinct.order(created_at: :desc)
+      relation.includes(:tags).distinct.reorder(created_at: :desc)
     end
 
     private

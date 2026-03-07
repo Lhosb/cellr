@@ -12,7 +12,7 @@ class Wine < ApplicationRecord
   validates :canonical_key, uniqueness: { scope: :cellar_id }
 
   pg_search_scope :search_text,
-                  against: { winery: "A", wine_name: "A", region: "B", varietal: "B" },
+                  against: { winery: "A", wine_name: "A", region: "B", varietal: "B", notes: "C", tasting_notes: "C" },
                   associated_against: { tags: :name },
                   using: { tsearch: { prefix: true }, trigram: {} }
 

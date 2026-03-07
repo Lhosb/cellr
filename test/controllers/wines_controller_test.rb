@@ -15,7 +15,9 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
           wine_name: "Bandol Rose",
           vintage: 2022,
           region: "Provence",
-          wine_type: "rosé"
+          wine_type: "rosé",
+          notes: "Save for summer dinner",
+          tasting_notes: "Strawberry, citrus, saline finish"
         }
       }, as: :json
     end
@@ -24,6 +26,8 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal "Domaine Tempier", body["winery"]
     assert_equal "Bandol Rose", body["wine_name"]
+    assert_equal "Save for summer dinner", body["notes"]
+    assert_equal "Strawberry, citrus, saline finish", body["tasting_notes"]
   end
 
   test "create returns conflict and duplicates when canonical duplicate exists" do
@@ -67,12 +71,16 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
         region: "Sonoma",
         varietal: "Syrah",
         bottle_size_ml: 750,
-        purchase_price_cents: 4900
+        purchase_price_cents: 4900,
+        notes: "Decant 45 minutes",
+        tasting_notes: "Blackberry, pepper, long finish"
       }
     }, as: :json
 
     assert_response :ok
     assert_equal "Syrah Que Syrah", wine.reload.wine_name
+    assert_equal "Decant 45 minutes", wine.notes
+    assert_equal "Blackberry, pepper, long finish", wine.tasting_notes
   end
 
   test "update returns conflict when duplicate candidate exists" do

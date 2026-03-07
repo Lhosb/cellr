@@ -79,4 +79,22 @@ class CellarsControllerTest < ActionDispatch::IntegrationTest
     membership = CellarMembership.find_by!(cellar:, user: @user)
     assert_equal "editor", membership.role
   end
+
+  test "show filters wines by tag" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+
+    summer_wine = cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
+    winter_wine = cellar.wines.create!(winery: "Ridge", wine_name: "Monte Bello", vintage: 2020)
+
+    summer_tag = cellar.tags.create!(name: "summer")
+    winter_tag = cellar.tags.create!(name: "winter")
+    summer_wine.tags << summer_tag
+    winter_wine.tags << winter_tag
+
+    get cellar_path(cellar), params: { tag: " SUMMER " }
+
+    assert_response :ok
+    assert_match summer_wine.wine_name, response.body
+    assert_no_match winter_wine.wine_name, response.body
+  end
 end

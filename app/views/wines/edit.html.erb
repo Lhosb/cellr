@@ -55,6 +55,16 @@
           <%= form.text_field :tag_list, value: @wine.tags.order(:name).pluck(:name).join(", "), placeholder: "date night, special, gift", class: "input input-bordered input-sm w-full" %>
         </div>
 
+        <div>
+          <label class="label"><span class="label-text">Notes</span></label>
+          <%= form.text_area :notes, rows: 3, class: "textarea textarea-bordered textarea-sm w-full" %>
+        </div>
+
+        <div>
+          <label class="label"><span class="label-text">Tasting notes</span></label>
+          <%= form.text_area :tasting_notes, rows: 4, class: "textarea textarea-bordered textarea-sm w-full" %>
+        </div>
+
         <div class="flex items-center gap-2 pt-1">
           <%= form.submit "Save Changes", class: "btn btn-primary btn-sm" %>
           <%= link_to "Cancel", cellar_path(@cellar), class: "btn btn-sm" %>

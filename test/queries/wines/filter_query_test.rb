@@ -32,5 +32,28 @@ module Wines
       assert_equal [ tagged.id ], result_ids
       refute_includes result_ids, untagged.id
     end
+
+    test "searches notes and tasting notes text" do
+      cellar = build_cellar
+
+      note_match = cellar.wines.create!(
+        winery: "Producer A",
+        wine_name: "Reserve",
+        vintage: 2021,
+        notes: "Hold for anniversary dinner",
+        tasting_notes: "Cherry, cedar, spice"
+      )
+      cellar.wines.create!(
+        winery: "Producer B",
+        wine_name: "Village",
+        vintage: 2020,
+        notes: "Weeknight bottle",
+        tasting_notes: "Lemon zest"
+      )
+
+      result = FilterQuery.new(scope: Wine.all, params: { cellar_id: cellar.id, q: "anniversary" }).call
+
+      assert_equal [ note_match.id ], result.to_a.map(&:id)
+    end
   end
 end
