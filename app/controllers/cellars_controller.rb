@@ -1,5 +1,5 @@
 class CellarsController < ApplicationController
-  before_action :set_cellar, only: [ :show, :settings, :update, :destroy ]
+  before_action :set_cellar, only: [ :show, :settings, :update, :set_default, :destroy ]
 
   def index
     @cellars = accessible_cellars.includes(:owner).order(created_at: :desc)
@@ -45,6 +45,15 @@ class CellarsController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to cellar_path(@cellar), notice: "Cellar updated" }
+      format.json { render json: @cellar }
+    end
+  end
+
+  def set_default
+    Cellars::SetDefault.call(user: current_user, cellar: @cellar)
+
+    respond_to do |format|
+      format.html { redirect_to settings_cellar_path(@cellar), notice: "#{@cellar.name} is now your default cellar" }
       format.json { render json: @cellar }
     end
   end

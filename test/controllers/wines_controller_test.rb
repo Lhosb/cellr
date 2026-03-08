@@ -24,7 +24,6 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :created
     body = JSON.parse(response.body)
-    assert_equal "Domaine Tempier", body["winery"]
     assert_equal "Bandol Rose", body["wine_name"]
     assert_equal "Save for summer dinner", body["notes"]
     assert_equal "Strawberry, citrus, saline finish", body["tasting_notes"]
@@ -32,7 +31,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   test "create allows duplicate wines in the same cellar" do
     cellar = build_cellar(owner: @user)
-    cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
+    cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
 
     assert_difference("Wine.count", 1) do
       post cellar_wines_path(cellar), params: {
@@ -49,7 +48,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   test "edit renders successfully" do
     cellar = build_cellar(owner: @user)
-    wine = cellar.wines.create!(winery: "Arnot-Roberts", wine_name: "Syrah", vintage: 2021)
+    wine = cellar.wines.create!(winery: winery_named("Arnot-Roberts"), wine_name: "Syrah", vintage: 2021)
 
     get edit_cellar_wine_path(cellar, wine)
 
@@ -58,7 +57,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   test "update returns ok json when wine updates" do
     cellar = build_cellar(owner: @user)
-    wine = cellar.wines.create!(winery: "Arnot-Roberts", wine_name: "Syrah", vintage: 2021)
+    wine = cellar.wines.create!(winery: winery_named("Arnot-Roberts"), wine_name: "Syrah", vintage: 2021)
 
     patch cellar_wine_path(cellar, wine), params: {
       wine: {
@@ -82,8 +81,8 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   test "update allows updating wine to match another existing wine" do
     cellar = build_cellar(owner: @user)
-    cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
-    wine = cellar.wines.create!(winery: "Different", wine_name: "Label", vintage: 2020)
+    cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
+    wine = cellar.wines.create!(winery: winery_named("Different"), wine_name: "Label", vintage: 2020)
 
     patch cellar_wine_path(cellar, wine), params: {
       wine: {
@@ -94,7 +93,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     }, as: :json
 
     assert_response :ok
-    assert_equal "domaine tempier", wine.reload.winery
+    assert_equal "domaine tempier", wine.reload.winery.normalized_name
   end
 
   test "create assigns comma-separated tags" do
@@ -118,7 +117,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   test "update replaces tag list" do
     cellar = build_cellar(owner: @user)
-    wine = cellar.wines.create!(winery: "Arnot-Roberts", wine_name: "Syrah", vintage: 2021)
+    wine = cellar.wines.create!(winery: winery_named("Arnot-Roberts"), wine_name: "Syrah", vintage: 2021)
     wine.tags << cellar.tags.create!(name: "old")
 
     patch cellar_wine_path(cellar, wine), params: {
@@ -132,5 +131,70 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert_equal [ "new", "special" ], wine.reload.tags.order(:name).pluck(:name)
+  end
+
+  # ── Show ──
+
+  test "show renders the wine detail page" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Ridge"), wine_name: "Monte Bello", vintage: 2019)
+
+    get cellar_wine_path(cellar, wine)
+
+    assert_response :success
+    assert_select "h1", /Monte Bello/
+  end
+
+  test "show renders json for api requests" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Ridge"), wine_name: "Monte Bello", vintage: 2019)
+
+    get cellar_wine_path(cellar, wine), as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "Monte Bello", body["wine_name"]
+  end
+
+  # ── Destroy ──
+
+  test "destroy deletes the wine and redirects to cellar" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Krug"), wine_name: "Grande Cuvée", vintage: 2010)
+
+    assert_difference("Wine.count", -1) do
+      delete cellar_wine_path(cellar, wine)
+    end
+
+    assert_redirected_to cellar_path(cellar)
+  end
+
+  test "destroy returns no content for json" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Krug"), wine_name: "Grande Cuvée", vintage: 2010)
+
+    assert_difference("Wine.count", -1) do
+      delete cellar_wine_path(cellar, wine), as: :json
+    end
+
+    assert_response :no_content
+  end
+
+  # ── Drink ──
+
+  test "drink transitions wine to drunk state and records drunk_at" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Domaine Leroy"), wine_name: "Musigny", vintage: 2015)
+
+    assert_equal "in_cellar", wine.state
+    assert_nil wine.drunk_at
+
+    patch drink_cellar_wine_path(cellar, wine)
+
+    assert_redirected_to cellar_wine_path(cellar, wine)
+    wine.reload
+    assert_equal "drunk", wine.state
+    assert_not_nil wine.drunk_at
+    assert_in_delta Time.current, wine.drunk_at, 5.seconds
   end
 end

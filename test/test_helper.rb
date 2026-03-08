@@ -12,6 +12,10 @@ class ActiveSupport::TestCase
   def build_cellar(name: "Test Cellar", owner: build_user)
     Cellar.create!(name:, owner:)
   end
+
+  def winery_named(name)
+    Winery.find_or_create_normalized(name)
+  end
 end
 
 class ActionDispatch::IntegrationTest

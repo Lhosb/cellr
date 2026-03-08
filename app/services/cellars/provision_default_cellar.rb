@@ -6,7 +6,7 @@ module Cellars
         return existing_membership.cellar if existing_membership
 
         cellar = Cellar.create!(owner: user, name: default_name_for(user))
-        CellarMembership.create!(cellar:, user:, role: :owner)
+        CellarMembership.create!(cellar:, user:, role: :owner, default: true)
         cellar
       end
     end

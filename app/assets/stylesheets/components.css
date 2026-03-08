@@ -241,8 +241,8 @@
 
   /* Per-type colour variants */
   .type-pill--red {
-    background: var(--color-terra-light);
-    color: var(--color-terracotta);
+    background: #e8d4cc;
+    color: #8b3a1f;
   }
   .type-pill--white {
     background: var(--color-gold-light);
@@ -460,5 +460,238 @@
   }
   .reveal-d5 {
     animation-delay: 0.33s;
+  }
+
+  /* ── Info card (wine show detail cards) ── */
+
+  .info-card {
+    background: white;
+    border-radius: 16px;
+    border: 1.5px solid var(--color-parchment-2);
+    box-shadow: 0 1px 4px rgba(28, 21, 16, 0.05);
+    overflow: hidden;
+  }
+
+  .info-card__header {
+    padding: 0.875rem 1.125rem 0.5rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 1.125rem;
+    border-top: 1px solid var(--color-parchment-2);
+  }
+
+  .info-row__label {
+    font-size: 0.78rem;
+    color: var(--color-ink-light);
+  }
+
+  .info-row__value {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    text-align: right;
+  }
+
+  /* ── Wine show action buttons ──────────── */
+
+  .btn-drink-wine {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem;
+    border-radius: 14px;
+    background: var(--color-ink);
+    color: var(--color-parchment);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    text-decoration: none;
+  }
+
+  .btn-drink-wine:hover {
+    opacity: 0.9;
+    color: var(--color-parchment);
+  }
+
+  .btn-drink-wine:active {
+    opacity: 0.85;
+  }
+
+  .btn-drink-wine--sm {
+    flex: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    gap: 0.3rem;
+  }
+
+  .btn-wine-edit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.875rem 1.25rem;
+    border-radius: 14px;
+    background: white;
+    color: var(--color-ink);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border: 1.5px solid var(--color-parchment-3, #ddd5c8);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .btn-wine-edit:hover {
+    background: var(--color-parchment-2);
+    color: var(--color-ink);
+  }
+
+  .btn-wine-edit--sm {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    gap: 0.3rem;
+  }
+
+  .btn-wine-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem;
+    border-radius: 14px;
+    background: var(--color-terra-light);
+    color: var(--color-terracotta);
+    border: 1.5px solid rgba(184, 92, 58, 0.2);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .btn-wine-delete:hover {
+    background: #edd5cc;
+    color: var(--color-terracotta);
+  }
+
+  .btn-wine-delete--sm {
+    padding: 0.4rem;
+    border-radius: 8px;
+  }
+
+  /* ── Wine show page ───────────────────── */
+
+  .wine-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--color-ink-light);
+    text-decoration: none;
+  }
+
+  .wine-show-hero {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .wine-show-subtitle {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    color: var(--color-ink-light);
+  }
+
+  .wine-show-details {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-ink-light);
+  }
+
+  .wine-show-details__sep {
+    color: var(--color-ink-faint);
+  }
+
+  .wine-show-vintage-ghost {
+    font-family: var(--font-display);
+    font-size: 9rem;
+    font-weight: 900;
+    font-style: italic;
+    line-height: 1;
+    position: absolute;
+    right: -1rem;
+    bottom: -1.5rem;
+    opacity: 0.05;
+    color: var(--color-ink);
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.04em;
+  }
+
+  .info-card__body-text {
+    padding: 0.75rem 1.125rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-ink-light);
+  }
+
+  /* ── Status badge ────────────────────── */
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: var(--color-sage-light);
+    color: var(--color-sage);
+  }
+
+  .status-badge__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-sage);
+  }
+
+  .status-badge--drunk {
+    background: var(--color-terra-light);
+    color: var(--color-terracotta);
+  }
+
+  .status-badge--drunk .status-badge__dot {
+    background: var(--color-terracotta);
+  }
+
+  /* ── Drink track (show page) ─────────── */
+
+  .drink-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-parchment-2);
+    overflow: hidden;
+  }
+
+  .drink-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-sage), var(--color-gold));
   }
 }

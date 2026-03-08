@@ -39,8 +39,9 @@
 
           <div class="flex items-center gap-2 reveal reveal-d2">
             <% if user_signed_in? %>
-              <%= link_to "Wines", root_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
+              <%= link_to "Home", root_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
               <%= link_to "Cellars", cellars_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
+              <%= link_to "Drunk", drunk_people_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
               <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
             <% else %>
               <%= link_to "Sign In", new_user_session_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
@@ -67,11 +68,13 @@
 
       <nav class="bottom-nav" aria-label="Primary">
         <div class="bottom-nav__items">
-          <%= link_to root_path, class: "nav-item #{current_page?(root_path) ? 'nav-item--active' : ''}" do %>
+          <% default_cellar = user_signed_in? ? current_user.default_cellar : nil %>
+          <% home_path_url = default_cellar ? cellar_path(default_cellar) : cellars_path %>
+          <%= link_to home_path_url, class: "nav-item #{default_cellar && current_page?(cellar_path(default_cellar)) ? 'nav-item--active' : ''}" do %>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span>Wines</span>
+            <span>Home</span>
           <% end %>
 
           <%= link_to cellars_path, class: "nav-item #{current_page?(cellars_path) ? 'nav-item--active' : ''}" do %>
@@ -79,6 +82,13 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 7h18M5 7v12a1 1 0 001 1h12a1 1 0 001-1V7m-8 4h4m-4 4h6" />
             </svg>
             <span>Cellars</span>
+          <% end %>
+
+          <%= link_to drunk_people_path, class: "nav-item #{current_page?(drunk_people_path) ? 'nav-item--active' : ''}" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>Drunk</span>
           <% end %>
 
           <% if user_signed_in? %>

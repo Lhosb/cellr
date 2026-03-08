@@ -7,6 +7,18 @@ class User < ApplicationRecord
   has_many :cellars, through: :cellar_memberships
   has_many :owned_cellars, class_name: "Cellar", foreign_key: :owner_id, inverse_of: :owner, dependent: :destroy
 
+  scope :activated, -> { where.not(encrypted_password: [ "", nil ]) }
+  scope :currently_drunk, -> { where(drunk: true) }
+
+  def default_cellar
+    membership = cellar_memberships.default_for_user.includes(:cellar).first
+    membership&.cellar
+  end
+
+  def default_cellar_or_fallback
+    default_cellar || cellars.order(:created_at).first
+  end
+
   def pending_invitations
     CellarInvitation.pending.where("LOWER(email) = ?", email.downcase)
   end

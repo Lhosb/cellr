@@ -152,7 +152,7 @@
   <% if @wines.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <% @wines.each_with_index do |wine, index| %>
-        <%= link_to edit_cellar_wine_path(@cellar, wine), class: "wine-card reveal reveal-d#{[(index % 5) + 1, 5].min}" do %>
+        <%= link_to cellar_wine_path(@cellar, wine), class: "wine-card reveal reveal-d#{[(index % 5) + 1, 5].min}" do %>
           <div class="wine-card__vintage-watermark"><%= wine.vintage || "NV" %></div>
           <div class="wine-card__body">
             <div class="flex items-start justify-between gap-2 mb-3">
@@ -162,7 +162,7 @@
                   <%= wine.wine_type.presence || wine.varietal.presence || "Wine" %>
                 </div>
                 <h3 class="font-display text-xl font-bold leading-tight"><%= wine.wine_name %></h3>
-                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery, wine.region.presence].compact.join(" · ") %></p>
+                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery.normalized_name.titleize, wine.region.presence].compact.join(" · ") %></p>
               </div>
               <div class="wine-card__quantity">×1</div>
             </div>

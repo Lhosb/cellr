@@ -1,0 +1,131 @@
+<%# ── Top bar: back + actions ── %>
+<div class="flex items-center justify-between mb-4">
+  <%= link_to cellar_path(@cellar), class: "wine-back-link" do %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    <%= @cellar.name %>
+  <% end %>
+
+  <div class="flex gap-2">
+    <% if @wine.in_cellar? %>
+      <%= link_to drink_cellar_wine_path(@cellar, @wine), data: { turbo_method: :patch, turbo_confirm: "Mark this wine as drunk?" }, class: "btn-drink-wine btn-drink-wine--sm" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 3h8l1 7a5 5 0 01-10 0l1-7zM12 15v6M8 21h8"/>
+        </svg>
+        Drink
+      <% end %>
+    <% end %>
+
+    <%= link_to edit_cellar_wine_path(@cellar, @wine), class: "btn-wine-edit btn-wine-edit--sm" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      Edit
+    <% end %>
+
+    <%= link_to cellar_wine_path(@cellar, @wine), data: { turbo_method: :delete, turbo_confirm: "Delete this wine permanently?" }, class: "btn-wine-delete btn-wine-delete--sm" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+    <% end %>
+  </div>
+</div>
+
+<%# ── Hero ── %>
+<section class="wine-show-hero mb-6">
+  <div class="type-pill <%= wine_type_pill_class(@wine.wine_type) %> mb-3">
+    <span class="type-pill__dot <%= wine_type_dot_class(@wine.wine_type) %>"></span>
+    <%= @wine.wine_type&.titleize.presence || @wine.varietal.presence || "Wine" %>
+  </div>
+
+  <h1 class="font-display text-4xl leading-tight"><%= @wine.wine_name %></h1>
+
+  <% subtitle = [wine_winery_name(@wine), @wine.region.presence].compact %>
+  <% if subtitle.any? %>
+    <p class="wine-show-subtitle"><%= subtitle.join(" · ") %></p>
+  <% end %>
+
+  <div class="wine-show-details mt-3">
+    <span class="status-badge <%= @wine.drunk? ? 'status-badge--drunk' : '' %>">
+      <span class="status-badge__dot"></span>
+      <% if @wine.drunk? %>
+        Drunk<%= " on #{@wine.drunk_at.strftime('%b %-d, %Y')}" if @wine.drunk_at.present? %>
+      <% else %>
+        In cellar
+      <% end %>
+    </span>
+    <span class="wine-show-details__sep">·</span>
+    <span><%= @wine.vintage || "NV" %></span>
+    <% if @wine.bottle_size_ml.present? %>
+      <span class="wine-show-details__sep">·</span>
+      <span><%= @wine.bottle_size_ml %> ml</span>
+    <% end %>
+  </div>
+
+  <div class="wine-show-vintage-ghost"><%= @wine.vintage || "NV" %></div>
+</section>
+
+<%# ── Cards ── %>
+<section class="space-y-4 pb-32">
+  <% if drink_status_feature_enabled? && @wine.in_cellar? %>
+    <article class="info-card">
+      <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+          <span class="info-card__header" style="padding:0">Drink status</span>
+          <span class="status-badge">
+            <span class="status-badge__dot"></span>
+            <%= wine_drink_status_label(@wine) %>
+          </span>
+        </div>
+        <div class="drink-track">
+          <div class="drink-fill" style="width:<%= wine_drink_status_key(@wine) == 'ready' ? 82 : 34 %>%"></div>
+        </div>
+      </div>
+    </article>
+  <% end %>
+
+  <article class="info-card">
+    <div class="info-card__header">Details</div>
+    <% [
+      ["Winery", wine_winery_name(@wine).presence || "—"],
+      ["Region", @wine.region.presence || "—"],
+      ["Varietal", @wine.varietal.presence || "—"],
+      ["Vintage", @wine.vintage.presence || "NV"],
+      ["Wine type", @wine.wine_type&.titleize.presence || "—"],
+      ["Bottle size", @wine.bottle_size_ml.present? ? "#{@wine.bottle_size_ml} ml" : "—"]
+    ].each do |(label, value)| %>
+      <%= render "wines/info_row", label: label, value: value %>
+    <% end %>
+  </article>
+
+  <article class="info-card">
+    <div class="info-card__header">Purchase</div>
+    <%= render "wines/info_row", label: "Price per bottle", value: @wine.purchase_price_cents.to_i > 0 ? number_to_currency(@wine.purchase_price_cents / 100.0) : "—" %>
+  </article>
+
+  <article class="info-card">
+    <div class="info-card__header">Notes</div>
+    <div class="info-card__body-text">
+      <%= @wine.notes.presence || "—" %>
+    </div>
+  </article>
+
+  <article class="info-card">
+    <div class="info-card__header">Tasting Notes</div>
+    <div class="info-card__body-text">
+      <%= @wine.tasting_notes.presence || "—" %>
+    </div>
+  </article>
+
+  <% if @wine.tags.any? %>
+    <div>
+      <div class="info-card__header" style="padding-left:0">Tags</div>
+      <div class="flex flex-wrap gap-2">
+        <% @wine.tags.order(:name).each do |tag| %>
+          <span class="chip"><%= tag.name %></span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</section>

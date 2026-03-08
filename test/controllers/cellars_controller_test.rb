@@ -83,8 +83,8 @@ class CellarsControllerTest < ActionDispatch::IntegrationTest
   test "show filters wines by tag" do
     cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
 
-    summer_wine = cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
-    winter_wine = cellar.wines.create!(winery: "Ridge", wine_name: "Monte Bello", vintage: 2020)
+    summer_wine = cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
+    winter_wine = cellar.wines.create!(winery: winery_named("Ridge"), wine_name: "Monte Bello", vintage: 2020)
 
     summer_tag = cellar.tags.create!(name: "summer")
     winter_tag = cellar.tags.create!(name: "winter")
@@ -127,5 +127,39 @@ class CellarsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to cellar_path(cellar)
     assert_equal "Weekend Cellar", cellar.reload.name
+  end
+
+  test "set_default marks cellar as default for current user" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+
+    patch set_default_cellar_path(cellar)
+
+    assert_redirected_to settings_cellar_path(cellar)
+    membership = @user.cellar_memberships.find_by!(cellar: cellar)
+    assert membership.default?
+  end
+
+  test "set_default clears prior default and sets new one" do
+    first_cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+    Cellars::SetDefault.call(user: @user, cellar: first_cellar)
+
+    second_cellar = Cellar.create!(name: "Second", owner: @user)
+    CellarMembership.create!(cellar: second_cellar, user: @user, role: :owner)
+
+    patch set_default_cellar_path(second_cellar)
+
+    assert_redirected_to settings_cellar_path(second_cellar)
+    refute @user.cellar_memberships.find_by!(cellar: first_cellar).default?
+    assert @user.cellar_memberships.find_by!(cellar: second_cellar).default?
+  end
+
+  test "settings shows default cellar badge when cellar is default" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+    Cellars::SetDefault.call(user: @user, cellar: cellar)
+
+    get settings_cellar_path(cellar)
+
+    assert_response :ok
+    assert_match "Default", response.body
   end
 end

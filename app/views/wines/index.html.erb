@@ -59,7 +59,7 @@
                   <%= wine.wine_type.presence || wine.varietal.presence || "Wine" %>
                 </div>
                 <h2 class="font-display text-xl font-bold leading-tight"><%= wine.wine_name %></h2>
-                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery, wine.region.presence].compact.join(" · ") %></p>
+                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery.normalized_name.titleize, wine.region.presence].compact.join(" · ") %></p>
               </div>
               <div class="wine-card__quantity">×1</div>
             </div>

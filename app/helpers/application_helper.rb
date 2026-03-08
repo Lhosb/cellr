@@ -1,4 +1,8 @@
 module ApplicationHelper
+  def wine_winery_name(wine)
+    wine.winery&.name
+  end
+
   def bottle_size_options
     [
       [ "Split / Piccolo (187.5 ml) — 0.25× standard", 187 ],

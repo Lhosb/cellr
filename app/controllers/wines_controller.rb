@@ -1,6 +1,6 @@
 class WinesController < ApplicationController
-  before_action :load_cellar, only: [ :create, :edit, :update ]
-  before_action :load_wine, only: [ :edit, :update ]
+  before_action :load_cellar, only: [ :show, :create, :edit, :update, :destroy, :drink ]
+  before_action :load_wine, only: [ :show, :edit, :update, :destroy, :drink ]
 
   def index
     @wines = Wines::FilterQuery.new(scope: Wine.all, params: filter_params).call.includes(:cellar)
@@ -16,12 +16,37 @@ class WinesController < ApplicationController
     end
 
     respond_to do |format|
-      format.html { redirect_to cellar_path(@cellar), notice: "Wine added" }
+      format.html { redirect_to cellar_wine_path(@cellar, wine), notice: "Wine added" }
       format.json { render json: wine, status: :created }
     end
   end
 
   def edit
+  end
+
+  def show
+    respond_to do |format|
+      format.html
+      format.json { render json: @wine }
+    end
+  end
+
+  def destroy
+    @wine.destroy!
+
+    respond_to do |format|
+      format.html { redirect_to cellar_path(@cellar), notice: "Wine deleted" }
+      format.json { head :no_content }
+    end
+  end
+
+  def drink
+    Wines::TransitionState.new(wine: @wine, event: :drink, actor: current_user).call
+
+    respond_to do |format|
+      format.html { redirect_to cellar_wine_path(@cellar, @wine), notice: "Cheers! Wine marked as drunk" }
+      format.json { render json: @wine, status: :ok }
+    end
   end
 
   def update
@@ -35,7 +60,7 @@ class WinesController < ApplicationController
 
     if updated
       respond_to do |format|
-        format.html { redirect_to cellar_path(@cellar), notice: "Wine updated" }
+        format.html { redirect_to cellar_wine_path(@cellar, @wine), notice: "Wine updated" }
         format.json { render json: @wine, status: :ok }
       end
     else
@@ -59,6 +84,12 @@ class WinesController < ApplicationController
   def normalized_wine_payload
     permitted = wine_params.to_h
     tag_list = permitted.delete("tag_list")
+
+    # Resolve winery string to a Winery record
+    winery_name = permitted.delete("winery")
+    if winery_name.present?
+      permitted["winery"] = Winery.find_or_create_normalized(winery_name)
+    end
 
     if permitted["purchase_price"].present?
       dollars = BigDecimal(permitted.delete("purchase_price").to_s)

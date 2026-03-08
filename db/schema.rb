@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_07_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_07_233746) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -32,12 +32,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_040000) do
   create_table "cellar_memberships", force: :cascade do |t|
     t.bigint "cellar_id", null: false
     t.datetime "created_at", null: false
+    t.boolean "default", default: false, null: false
     t.integer "role", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["cellar_id", "user_id"], name: "index_cellar_memberships_on_cellar_id_and_user_id", unique: true
     t.index ["cellar_id"], name: "index_cellar_memberships_on_cellar_id"
     t.index ["user_id"], name: "index_cellar_memberships_on_user_id"
+    t.index ["user_id"], name: "index_cellar_memberships_on_user_id_where_default", unique: true, where: "(\"default\" = true)"
   end
 
   create_table "cellars", force: :cascade do |t|
@@ -75,6 +77,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_040000) do
 
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.boolean "drunk", default: false, null: false
     t.string "email", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "name"
@@ -96,29 +99,39 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_040000) do
     t.index ["wine_id"], name: "index_wine_tags_on_wine_id"
   end
 
+  create_table "wineries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "normalized_name", null: false
+    t.datetime "updated_at", null: false
+    t.index ["normalized_name"], name: "index_wineries_on_normalized_name", unique: true
+  end
+
   create_table "wines", force: :cascade do |t|
     t.integer "bottle_size_ml"
     t.string "canonical_key", null: false
     t.bigint "cellar_id", null: false
     t.datetime "created_at", null: false
+    t.datetime "drunk_at"
     t.string "normalized_wine_name", null: false
     t.string "normalized_winery", null: false
     t.text "notes"
     t.integer "purchase_price_cents", default: 0, null: false
     t.string "region"
+    t.integer "state", default: 0, null: false
     t.text "tasting_notes"
     t.datetime "updated_at", null: false
     t.string "varietal"
     t.integer "vintage"
     t.string "wine_name", null: false
     t.string "wine_type"
-    t.string "winery", null: false
+    t.bigint "winery_id", null: false
     t.index ["cellar_id", "canonical_key"], name: "index_wines_on_cellar_id_and_canonical_key"
     t.index ["cellar_id"], name: "index_wines_on_cellar_id"
     t.index ["normalized_wine_name"], name: "index_wines_on_normalized_wine_name"
     t.index ["normalized_winery"], name: "index_wines_on_normalized_winery"
     t.index ["wine_name"], name: "index_wines_on_wine_name", opclass: :gin_trgm_ops, using: :gin
-    t.index ["winery"], name: "index_wines_on_winery", opclass: :gin_trgm_ops, using: :gin
+    t.index ["winery_id"], name: "index_wines_on_winery_id"
   end
 
   add_foreign_key "cellar_invitations", "cellars"
@@ -130,4 +143,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_040000) do
   add_foreign_key "wine_tags", "tags"
   add_foreign_key "wine_tags", "wines"
   add_foreign_key "wines", "cellars"
+  add_foreign_key "wines", "wineries"
 end

@@ -11,13 +11,21 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  root "wines#index"
+  root "home#show"
+
+  resource :profile, only: [ :show, :update ]
+  resources :drunk_people, only: [ :index ]
 
   resources :cellars do
     member do
       get :settings
+      patch :set_default
     end
-    resources :wines, only: [ :index, :create, :edit, :update ]
+    resources :wines, only: [ :index, :show, :create, :edit, :update, :destroy ] do
+      member do
+        patch :drink
+      end
+    end
     resources :invitations, only: [ :index, :create, :destroy ], controller: "cellars/invitations"
     resources :memberships, only: [ :index, :update, :destroy ], controller: "cellars/memberships"
   end

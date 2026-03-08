@@ -9,7 +9,7 @@ module Wines
       relation = @scope
       relation = relation.where(cellar_id: cellar_id) if cellar_id.present?
       relation = relation.search_text(query) if query.present?
-      relation = relation.where("LOWER(winery) = ?", normalize(winery)) if winery.present?
+      relation = relation.where("LOWER(normalized_winery) = ?", normalize(winery)) if winery.present?
       relation = relation.where("LOWER(region) = ?", normalize(region)) if region.present?
       relation = relation.where(wine_type:) if wine_type.present?
       relation = relation.joins(:tags).where(tags: { name: normalize(tag) }) if tag.present?

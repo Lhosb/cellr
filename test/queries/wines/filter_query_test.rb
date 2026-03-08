@@ -6,8 +6,8 @@ module Wines
       cellar_a = build_cellar(name: "A")
       cellar_b = build_cellar(name: "B")
 
-      keep = cellar_a.wines.create!(winery: "Alpha", wine_name: "One", vintage: 2020)
-      cellar_b.wines.create!(winery: "Beta", wine_name: "Two", vintage: 2020)
+      keep = cellar_a.wines.create!(winery: winery_named("Alpha"), wine_name: "One", vintage: 2020)
+      cellar_b.wines.create!(winery: winery_named("Beta"), wine_name: "Two", vintage: 2020)
 
       result = FilterQuery.new(scope: Wine.all, params: { cellar_id: cellar_a.id }).call
 
@@ -17,8 +17,8 @@ module Wines
     test "filters by normalized winery and tag" do
       cellar = build_cellar
 
-      tagged = cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rose", vintage: 2022)
-      untagged = cellar.wines.create!(winery: "Domaine Tempier", wine_name: "Bandol Rouge", vintage: 2021)
+      tagged = cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
+      untagged = cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rouge", vintage: 2021)
       tag = cellar.tags.create!(name: "summer")
       tagged.tags << tag
 
@@ -37,14 +37,14 @@ module Wines
       cellar = build_cellar
 
       note_match = cellar.wines.create!(
-        winery: "Producer A",
+        winery: winery_named("Producer A"),
         wine_name: "Reserve",
         vintage: 2021,
         notes: "Hold for anniversary dinner",
         tasting_notes: "Cherry, cedar, spice"
       )
       cellar.wines.create!(
-        winery: "Producer B",
+        winery: winery_named("Producer B"),
         wine_name: "Village",
         vintage: 2020,
         notes: "Weeknight bottle",

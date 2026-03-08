@@ -45,6 +45,7 @@
 
   <% if @cellars.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <% default_cellar_id = current_user.cellar_memberships.default_for_user.pick(:cellar_id) %>
       <% @cellars.each_with_index do |cellar, index| %>
         <article class="wine-card reveal reveal-d<%= [(index % 5) + 1, 5].min %>">
           <div class="wine-card__body">
@@ -52,6 +53,9 @@
               <div>
                 <h2 class="font-display text-xl font-bold"><%= cellar.name %></h2>
                 <p class="text-xs mt-1" style="color:var(--color-ink-light)">Owner · <%= cellar.owner.email %></p>
+                <% if cellar.id == default_cellar_id %>
+                  <span class="chip chip--active mt-1" style="font-size:0.6rem;padding:0.1rem 0.5rem">Default</span>
+                <% end %>
               </div>
               <%= link_to "Open", cellar_path(cellar), class: "btn btn-sm btn-primary" %>
             </div>

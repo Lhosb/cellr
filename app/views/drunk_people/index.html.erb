@@ -1,0 +1,44 @@
+<section class="space-y-4">
+  <div class="flex items-baseline justify-between">
+    <h1 class="font-display text-3xl font-bold italic">Drunk Hall of Fame 🍷</h1>
+    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(@users.size, "person") %></span>
+  </div>
+
+  <p class="text-sm" style="color:var(--color-ink-light)">Tonight's legends and their latest bottle takedown.</p>
+
+  <% if @users.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <% @users.each do |user| %>
+        <% latest_wine = @latest_drunk_wine_by_user_id[user.id] %>
+        <article class="wine-card">
+          <div class="wine-card__body space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <h2 class="font-display text-xl font-bold"><%= user.name.presence || "Mystery Sipper" %></h2>
+              <span class="chip chip--active">is Drunk</span>
+            </div>
+
+            <% if latest_wine.present? %>
+              <p class="text-sm" style="color:var(--color-ink-light)">
+                Latest wine: <strong><%= [wine_winery_name(latest_wine), latest_wine.wine_name].reject(&:blank?).join(" · ") %></strong>
+                <% if latest_wine.vintage.present? %>
+                  (<%= latest_wine.vintage %>)
+                <% end %>
+              </p>
+              <p class="text-xs" style="color:var(--color-ink-faint)">
+                Marked drunk <%= time_ago_in_words(latest_wine.updated_at) %> ago
+              </p>
+            <% else %>
+              <p class="text-sm" style="color:var(--color-ink-light)">No drunk wines recorded yet — lightweight champion.</p>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="wine-card">
+      <div class="wine-card__body">
+        <p class="text-sm" style="color:var(--color-ink-light)">Nobody is drunk right now. :(</p>
+      </div>
+    </div>
+  <% end %>
+</section>

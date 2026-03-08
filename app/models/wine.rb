@@ -2,16 +2,19 @@ class Wine < ApplicationRecord
   include PgSearch::Model
 
   belongs_to :cellar
+  belongs_to :winery
 
   has_many :wine_tags, dependent: :destroy
   has_many :tags, through: :wine_tags
+
+  enum :state, { in_cellar: 0, drunk: 1 }, default: :in_cellar
 
   before_validation :normalize_identity
 
   validates :winery, :wine_name, :normalized_winery, :normalized_wine_name, :canonical_key, presence: true
 
   pg_search_scope :search_text,
-                  against: { winery: "A", wine_name: "A", region: "B", varietal: "B", notes: "C", tasting_notes: "C" },
+                  against: { normalized_winery: "A", wine_name: "A", region: "B", varietal: "B", notes: "C", tasting_notes: "C" },
                   associated_against: { tags: :name },
                   using: { tsearch: { prefix: true }, trigram: {} }
 
@@ -36,12 +39,11 @@ class Wine < ApplicationRecord
   private
 
   def normalize_identity
-    self.winery = winery.to_s.strip
     self.wine_name = wine_name.to_s.strip
     self.varietal = varietal.to_s.strip if varietal.present?
     self.region = region.to_s.strip if region.present?
 
-    self.normalized_winery = self.class.normalize_for_key(winery)
+    self.normalized_winery = self.class.normalize_for_key(winery&.name)
     self.normalized_wine_name = self.class.normalize_for_key(wine_name)
 
     normalized_vintage = vintage.presence || "nv"
