@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   root "home#show"
 
   resource :profile, only: [ :show, :update ]
+  resource :library, only: [ :show ], controller: "library"
   resource :happy_hour, only: [ :show ], controller: "happy_hour"
   resource :drinking_session, only: [ :create, :destroy ]
   resources :drinking_records, only: [ :create ]
