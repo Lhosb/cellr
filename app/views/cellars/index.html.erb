@@ -44,7 +44,7 @@
   <% end %>
 
   <% if @cellars.any? %>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 gap-3">
       <% default_cellar_id = current_user.cellar_memberships.default_for_user.pick(:cellar_id) %>
       <% @cellars.each_with_index do |cellar, index| %>
         <article class="wine-card reveal reveal-d<%= [(index % 5) + 1, 5].min %>">

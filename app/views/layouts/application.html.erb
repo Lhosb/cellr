@@ -40,8 +40,8 @@
           <div class="flex items-center gap-2 reveal reveal-d2">
             <% if user_signed_in? %>
               <%= link_to "Home", root_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
-              <%= link_to "Cellars", cellars_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
               <%= link_to "Happy Hour", happy_hour_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
+              <%= link_to "Profile", profile_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
               <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
             <% else %>
               <%= link_to "Sign In", new_user_session_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
@@ -69,7 +69,7 @@
       <nav class="bottom-nav" aria-label="Primary">
         <div class="bottom-nav__items">
           <% default_cellar = user_signed_in? ? current_user.default_cellar : nil %>
-          <% home_path_url = default_cellar ? cellar_path(default_cellar) : cellars_path %>
+          <% home_path_url = default_cellar ? cellar_path(default_cellar) : profile_path %>
           <%= link_to home_path_url, class: "nav-item #{default_cellar && current_page?(cellar_path(default_cellar)) ? 'nav-item--active' : ''}" do %>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -77,12 +77,7 @@
             <span>Home</span>
           <% end %>
 
-          <%= link_to cellars_path, class: "nav-item #{current_page?(cellars_path) ? 'nav-item--active' : ''}" do %>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 7h18M5 7v12a1 1 0 001 1h12a1 1 0 001-1V7m-8 4h4m-4 4h6" />
-            </svg>
-            <span>Cellars</span>
-          <% end %>
+          <%# Cellars moved to Profile page; link removed from bottom nav %>
 
           <%= link_to happy_hour_path, class: "nav-item #{current_page?(happy_hour_path) ? 'nav-item--active' : ''}" do %>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,6 +87,13 @@
           <% end %>
 
           <% if user_signed_in? %>
+            <%= link_to profile_path, class: "nav-item #{current_page?(profile_path) ? 'nav-item--active' : ''}" do %>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span>Profile</span>
+            <% end %>
+
             <%= link_to destroy_user_session_path, data: { turbo_method: :delete }, class: "nav-item" do %>
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1" />

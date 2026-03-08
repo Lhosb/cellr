@@ -4,29 +4,144 @@
     <p class="text-sm" style="color:var(--color-ink-light)">Manage your display name and Happy Hour status.</p>
   </div>
 
-  <%= form_with model: @user, url: profile_path, method: :patch, class: "space-y-4" do |form| %>
-    <% if @user.errors.any? %>
-      <div class="alert alert-error">
-        <span><%= @user.errors.full_messages.to_sentence %></span>
+  <% if @editing %>
+    <%= form_with model: @user, url: profile_path, method: :patch, class: "space-y-4" do |form| %>
+      <% if @user.errors.any? %>
+        <div class="alert alert-error">
+          <span><%= @user.errors.full_messages.to_sentence %></span>
+        </div>
+      <% end %>
+
+      <fieldset class="fieldset">
+        <label class="label"><span class="label-text">Name</span></label>
+        <%= form.text_field :name, class: "input input-bordered input-sm w-full", required: true %>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="label"><span class="label-text">Email</span></label>
+        <%= form.email_field :email, class: "input input-bordered input-sm w-full", required: true %>
+        <p class="text-xs" style="color:var(--color-ink-faint);margin-top:0.25rem">Changing your email requires your current password.</p>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="label"><span class="label-text">New password</span></label>
+        <%= form.password_field :password, autocomplete: "new-password", class: "input input-bordered input-sm w-full" %>
+        <p class="text-xs" style="color:var(--color-ink-faint);margin-top:0.25rem">Leave blank to keep your existing password.</p>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="label"><span class="label-text">Confirm new password</span></label>
+        <%= form.password_field :password_confirmation, autocomplete: "new-password", class: "input input-bordered input-sm w-full" %>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <label class="label"><span class="label-text">Current password</span></label>
+        <%= form.password_field :current_password, autocomplete: "current-password", class: "input input-bordered input-sm w-full" %>
+        <p class="text-xs" style="color:var(--color-ink-faint);margin-top:0.25rem">Required when changing email or password.</p>
+      </fieldset>
+
+      <div class="flex items-center gap-2">
+        <%= form.submit "Save", class: "btn btn-primary" %>
+        <%= link_to "Cancel", profile_path, class: "btn btn-sm" %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="space-y-2">
+      <div>
+        <h3 class="font-display text-lg font-semibold">Name</h3>
+        <p class="text-sm" style="color:var(--color-ink-light)"><%= @user.name.presence || "(not set)" %></p>
+      </div>
+
+      <div>
+        <h3 class="font-display text-lg font-semibold">Email</h3>
+        <p class="text-sm" style="color:var(--color-ink-light)"><%= @user.email %></p>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <%= link_to "Edit profile", profile_path(edit: 1), class: "btn btn-primary" %>
+        <% if @user.in_active_drinking_session? %>
+          <%= button_to "Stop Happy Hour", drinking_session_path, method: :delete, class: "btn btn-sm" %>
+        <% else %>
+          <%= button_to "Start Happy Hour", drinking_session_path, method: :post, class: "btn btn-sm btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <hr />
+
+  <section class="space-y-4">
+    <div class="flex items-baseline justify-between">
+      <h2 class="font-display text-2xl font-bold italic">Cellars</h2>
+      <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(@cellars.size, "cellar") %></span>
+    </div>
+
+    <article class="wine-card">
+      <div class="wine-card__body">
+        <h3 class="font-display text-lg font-semibold mb-3">Create Cellar</h3>
+        <% if @user.present? %>
+          <%= form_with url: cellars_path, method: :post, class: "grid grid-cols-1 md:grid-cols-3 gap-3 items-end" do |form| %>
+            <%= form.text_field :name, required: true, placeholder: "Cellar name", class: "input input-bordered w-full" %>
+            <div class="text-sm" style="color:var(--color-ink-light)">
+              Owner · <%= @user.email %>
+            </div>
+            <%= form.submit "Create", class: "btn btn-primary" %>
+          <% end %>
+        <% else %>
+          <p class="text-sm" style="color:var(--color-ink-light)">Sign in to create a cellar.</p>
+        <% end %>
+      </div>
+    </article>
+
+    <% if @pending_invitations.any? %>
+      <div class="space-y-2">
+        <h3 class="font-display text-lg font-semibold">Pending Invitations</h3>
+        <% @pending_invitations.each do |invitation| %>
+          <article class="wine-card">
+            <div class="wine-card__body flex items-center justify-between gap-3">
+              <div>
+                <h4 class="font-display font-bold"><%= invitation.cellar.name %></h4>
+                <p class="text-xs" style="color:var(--color-ink-light)">
+                  Invited by <%= invitation.invited_by.email %> as <strong><%= invitation.role.titleize %></strong>
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <%= button_to "Accept", accept_cellar_invitation_path(invitation.token), method: :post, class: "btn btn-sm btn-primary" %>
+                <%= link_to "View", cellar_invitation_token_path(invitation.token), class: "btn btn-sm" %>
+              </div>
+            </div>
+          </article>
+        <% end %>
       </div>
     <% end %>
 
-    <fieldset class="fieldset">
-      <label class="label"><span class="label-text">Name</span></label>
-      <%= form.text_field :name, class: "input input-bordered w-full", required: true %>
-    </fieldset>
+    <% if @cellars.any? %>
+      <div class="grid grid-cols-1 gap-3">
+        <% default_cellar_id = current_user.cellar_memberships.default_for_user.pick(:cellar_id) %>
+        <% @cellars.each_with_index do |cellar, index| %>
+          <article class="wine-card reveal reveal-d<%= [(index % 5) + 1, 5].min %>">
+            <div class="wine-card__body">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h3 class="font-display text-xl font-bold"><%= cellar.name %></h3>
+                  <p class="text-xs mt-1" style="color:var(--color-ink-light)">Owner · <%= cellar.owner.email %></p>
+                  <% if cellar.id == default_cellar_id %>
+                    <span class="chip chip--active mt-1" style="font-size:0.6rem;padding:0.1rem 0.5rem">Default</span>
+                  <% end %>
+                </div>
+                <%= link_to "Open", cellar_path(cellar), class: "btn btn-sm btn-primary" %>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% else %>
+      <article class="wine-card">
+        <div class="wine-card__body">
+          <p class="text-sm" style="color:var(--color-ink-light)">No cellars available yet.</p>
+        </div>
+      </article>
+    <% end %>
+  </section>
 
-    <fieldset class="fieldset">
-      <label class="label"><span class="label-text">Happy Hour status</span></label>
-      <% if @user.in_active_drinking_session? %>
-        <p class="text-sm" style="color:var(--color-ink-light)">You are currently in an active Happy Hour session.</p>
-        <%= hidden_field_tag :drinking_status, "stop" %>
-      <% else %>
-        <p class="text-sm" style="color:var(--color-ink-light)">You are not currently in a Happy Hour session.</p>
-        <%= hidden_field_tag :drinking_status, "start" %>
-      <% end %>
-    </fieldset>
-
-    <%= form.submit "Save", class: "btn btn-primary" %>
-  <% end %>
 </section>
