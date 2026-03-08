@@ -203,4 +203,44 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil session
     assert_equal wine.id, session.drinking_records.order(:created_at).last.cellar_entry_id
   end
+
+  test "re_add creates a new in-cellar wine and preserves drunk original" do
+    cellar = build_cellar(owner: @user)
+    drunk_wine = cellar.wines.create!(winery: winery_named("Domaine Leroy"), wine_name: "Musigny", vintage: 2015)
+
+    assert_difference("DrinkingRecord.count", 1) do
+      patch drink_cellar_wine_path(cellar, drunk_wine)
+    end
+
+    assert_equal "drunk", drunk_wine.reload.state
+    original_record_count = DrinkingRecord.count
+
+    assert_difference("Wine.count", 1) do
+      post re_add_cellar_wine_path(cellar, drunk_wine)
+    end
+
+    assert_redirected_to cellar_wine_path(cellar, Wine.order(:created_at).last)
+
+    drunk_wine.reload
+    assert_equal "drunk", drunk_wine.state
+    assert_equal original_record_count, DrinkingRecord.count
+
+    re_added = cellar.wines.order(:created_at).last
+    assert_equal "in_cellar", re_added.state
+    assert_nil re_added.drunk_at
+    assert_equal drunk_wine.wine_name, re_added.wine_name
+    assert_equal drunk_wine.winery_id, re_added.winery_id
+  end
+
+  test "re_add rejects wines that are already in cellar" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Domaine Leroy"), wine_name: "Musigny", vintage: 2015)
+
+    assert_no_difference("Wine.count") do
+      post re_add_cellar_wine_path(cellar, wine)
+    end
+
+    assert_redirected_to cellar_wine_path(cellar, wine)
+    assert_match "Only drunk wines can be re-added", flash[:alert]
+  end
 end

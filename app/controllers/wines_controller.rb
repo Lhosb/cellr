@@ -1,6 +1,6 @@
 class WinesController < ApplicationController
-  before_action :load_cellar, only: [ :show, :create, :edit, :update, :destroy, :drink ]
-  before_action :load_wine, only: [ :show, :edit, :update, :destroy, :drink ]
+  before_action :load_cellar, only: [ :show, :create, :edit, :update, :destroy, :drink, :re_add ]
+  before_action :load_wine, only: [ :show, :edit, :update, :destroy, :drink, :re_add ]
 
   def index
     @wines = Wines::FilterQuery.new(scope: Wine.all, params: filter_params).call.includes(:cellar)
@@ -12,6 +12,7 @@ class WinesController < ApplicationController
     wine = nil
     ActiveRecord::Base.transaction do
       wine = @cellar.wines.create!(attributes)
+      sync_cellar_entry!(wine)
       assign_tags(wine, tag_names)
     end
 
@@ -32,6 +33,7 @@ class WinesController < ApplicationController
   end
 
   def destroy
+    @cellar.cellar_entries.find_by(wine_id: @wine.id)&.destroy!
     @wine.destroy!
 
     respond_to do |format|
@@ -49,13 +51,52 @@ class WinesController < ApplicationController
     end
   end
 
+  def re_add
+    unless @wine.drunk?
+      respond_to do |format|
+        format.html { redirect_to cellar_wine_path(@cellar, @wine), alert: "Only drunk wines can be re-added" }
+        format.json { render json: { error: "Only drunk wines can be re-added" }, status: :unprocessable_entity }
+      end
+      return
+    end
+
+    re_added_wine = nil
+    ActiveRecord::Base.transaction do
+      re_added_wine = @cellar.wines.create!(
+        winery: @wine.winery,
+        wine_name: @wine.wine_name,
+        vintage: @wine.vintage,
+        varietal: @wine.varietal,
+        wine_type: @wine.wine_type,
+        region: @wine.region,
+        region_id: @wine.region_id,
+        bottle_size_ml: @wine.bottle_size_ml,
+        purchase_price_cents: @wine.purchase_price_cents,
+        notes: @wine.notes,
+        tasting_notes: @wine.tasting_notes,
+        state: :in_cellar,
+        drunk_at: nil
+      )
+      re_added_wine.tags = @wine.tags
+      sync_cellar_entry!(re_added_wine)
+    end
+
+    respond_to do |format|
+      format.html { redirect_to cellar_wine_path(@cellar, re_added_wine), notice: "Wine re-added to cellar" }
+      format.json { render json: re_added_wine, status: :created }
+    end
+  end
+
   def update
     attributes, tag_names = normalized_wine_payload
 
     updated = false
     ActiveRecord::Base.transaction do
       updated = @wine.update(attributes)
-      assign_tags(@wine, tag_names) if updated
+      if updated
+        sync_cellar_entry!(@wine)
+        assign_tags(@wine, tag_names)
+      end
     end
 
     if updated
@@ -91,6 +132,11 @@ class WinesController < ApplicationController
       permitted["winery"] = Winery.find_or_create_normalized(winery_name)
     end
 
+    region_name = permitted["region"]
+    region_record = region_name.present? ? Region.find_or_create_normalized(region_name) : Region.unknown
+    permitted["region"] = region_record.name
+    permitted["region_id"] = region_record.id
+
     if permitted["purchase_price"].present?
       dollars = BigDecimal(permitted.delete("purchase_price").to_s)
       permitted["purchase_price_cents"] = (dollars * 100).round(0).to_i
@@ -99,6 +145,20 @@ class WinesController < ApplicationController
     end
 
     [ permitted, parse_tag_names(tag_list) ]
+  end
+
+  def sync_cellar_entry!(wine)
+    cellar_entry = @cellar.cellar_entries.find_or_initialize_by(wine_id: wine.id)
+    cellar_entry.assign_attributes(
+      vintage: wine.vintage,
+      purchase_price_cents: wine.purchase_price_cents,
+      state: wine.state,
+      drunk_at: wine.drunk_at,
+      bottle_size_ml: wine.bottle_size_ml,
+      notes: wine.notes,
+      tasting_notes: wine.tasting_notes
+    )
+    cellar_entry.save!
   end
 
   def parse_tag_names(value)

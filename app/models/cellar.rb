@@ -4,6 +4,7 @@ class Cellar < ApplicationRecord
   has_many :cellar_memberships, dependent: :destroy
   has_many :members, through: :cellar_memberships, source: :user
   has_many :wines, dependent: :destroy
+  has_many :cellar_entries, dependent: :destroy
   has_many :tags, dependent: :destroy
   has_many :cellar_invitations, dependent: :destroy
 

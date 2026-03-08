@@ -17,7 +17,7 @@ module DrinkingRecords
           quantity: 2
         )
 
-        assert_equal wine.id, record.cellar_entry_id
+        assert_equal CellarEntry.find_by!(cellar_id: cellar.id, wine_id: wine.id).id, record.cellar_entry_id
         assert_equal "Silky and floral", record.tasting_notes
         assert_equal 2, record.quantity
         assert_equal consumed_at.to_i, record.consumed_at.to_i

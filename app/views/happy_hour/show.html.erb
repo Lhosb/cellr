@@ -1,8 +1,8 @@
 <section class="space-y-4">
   <%= turbo_stream_from "happy_hour" %>
 
-  <div class="flex items-baseline justify-between gap-3">
-    <div>
+  <div class="happy-hour-banner flex items-baseline justify-between gap-3">
+    <div class="space-y-1">
       <h1 class="font-display text-3xl font-bold italic">Happy Hour</h1>
       <p class="text-sm" style="color:var(--color-ink-light)">See who is drinking and what is open tonight.</p>
     </div>
@@ -17,7 +17,7 @@
   </div>
 
   <% if @current_session.present? %>
-    <div class="wine-card">
+    <div class="wine-card happy-hour-card happy-hour-card--join">
       <div class="wine-card__body space-y-3">
         <h2 class="font-display text-xl font-bold">Log a drink</h2>
         <%= form_with url: drinking_records_path, method: :post, scope: :drinking_record, class: "grid grid-cols-1 sm:grid-cols-4 gap-2 items-end" do |form| %>

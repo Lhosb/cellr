@@ -41,7 +41,12 @@
 
         <div>
           <label class="label"><span class="label-text">Region</span></label>
-          <%= form.text_field :region, class: "input input-bordered input-sm w-full" %>
+          <%= form.text_field :region, list: "region-options", autocomplete: "off", class: "input input-bordered input-sm w-full" %>
+          <datalist id="region-options">
+            <% Region.order(:name).pluck(:name).each do |name| %>
+              <option value="<%= name %>">
+            <% end %>
+          </datalist>
         </div>
 
         <div class="grid grid-cols-2 gap-2">

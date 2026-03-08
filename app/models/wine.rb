@@ -3,10 +3,13 @@ class Wine < ApplicationRecord
 
   belongs_to :cellar
   belongs_to :winery
+  belongs_to :region_record, class_name: "Region", foreign_key: :region_id, inverse_of: :wines, optional: true
+
+  has_one :cellar_entry, dependent: :destroy
 
   has_many :wine_tags, dependent: :destroy
   has_many :tags, through: :wine_tags
-  has_many :drinking_records, foreign_key: :cellar_entry_id, inverse_of: :cellar_entry
+  has_many :drinking_records, through: :cellar_entry
 
   enum :state, { in_cellar: 0, drunk: 1 }, default: :in_cellar
 
@@ -37,12 +40,19 @@ class Wine < ApplicationRecord
     value.to_s.strip.downcase.gsub(/\s+/, " ")
   end
 
+  def region_name
+    region_record&.name
+  end
+
   private
 
   def normalize_identity
     self.wine_name = wine_name.to_s.strip
     self.varietal = varietal.to_s.strip if varietal.present?
-    self.region = region.to_s.strip if region.present?
+
+    resolved_region_name = region.presence || region_record&.name
+    self.region_record = Region.find_or_create_normalized(resolved_region_name.presence || Region::UNKNOWN_NAME)
+    self.region = region_record&.name
 
     self.normalized_winery = self.class.normalize_for_key(winery&.name)
     self.normalized_wine_name = self.class.normalize_for_key(wine_name)

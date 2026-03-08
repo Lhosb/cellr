@@ -1,6 +1,7 @@
 module ApplicationHelper
   def wine_winery_name(wine)
-    wine.winery&.name
+    record = wine.respond_to?(:wine) ? wine.wine : wine
+    record&.winery&.name
   end
 
   def bottle_size_options

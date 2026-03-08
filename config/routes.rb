@@ -27,6 +27,7 @@ Rails.application.routes.draw do
     resources :wines, only: [ :index, :show, :create, :edit, :update, :destroy ] do
       member do
         patch :drink
+        post :re_add
       end
     end
     resources :invitations, only: [ :index, :create, :destroy ], controller: "cellars/invitations"
