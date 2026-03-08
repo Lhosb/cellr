@@ -1,7 +1,7 @@
 <section class="space-y-4">
   <div>
     <h1 class="font-display text-3xl font-bold italic">Profile</h1>
-    <p class="text-sm" style="color:var(--color-ink-light)">Manage your display name and status.</p>
+    <p class="text-sm" style="color:var(--color-ink-light)">Manage your display name and Happy Hour status.</p>
   </div>
 
   <%= form_with model: @user, url: profile_path, method: :patch, class: "space-y-4" do |form| %>
@@ -17,10 +17,14 @@
     </fieldset>
 
     <fieldset class="fieldset">
-      <label class="label cursor-pointer justify-start gap-3">
-        <%= form.check_box :drunk, class: "checkbox" %>
-        <span class="label-text">I am currently drunk</span>
-      </label>
+      <label class="label"><span class="label-text">Happy Hour status</span></label>
+      <% if @user.in_active_drinking_session? %>
+        <p class="text-sm" style="color:var(--color-ink-light)">You are currently in an active Happy Hour session.</p>
+        <%= hidden_field_tag :drinking_status, "stop" %>
+      <% else %>
+        <p class="text-sm" style="color:var(--color-ink-light)">You are not currently in a Happy Hour session.</p>
+        <%= hidden_field_tag :drinking_status, "start" %>
+      <% end %>
     </fieldset>
 
     <%= form.submit "Save", class: "btn btn-primary" %>

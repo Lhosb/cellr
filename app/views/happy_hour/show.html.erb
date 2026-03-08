@@ -1,0 +1,44 @@
+<section class="space-y-4">
+  <%= turbo_stream_from "happy_hour" %>
+
+  <div class="flex items-baseline justify-between gap-3">
+    <div>
+      <h1 class="font-display text-3xl font-bold italic">Happy Hour</h1>
+      <p class="text-sm" style="color:var(--color-ink-light)">See who is drinking and what is open tonight.</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <% if @current_session.present? %>
+        <%= button_to "Leave Happy Hour", drinking_session_path, method: :delete, class: "btn btn-sm" %>
+      <% else %>
+        <%= button_to "Join Happy Hour", drinking_session_path, method: :post, class: "btn btn-sm btn-primary" %>
+      <% end %>
+    </div>
+  </div>
+
+  <% if @current_session.present? %>
+    <div class="wine-card">
+      <div class="wine-card__body space-y-3">
+        <h2 class="font-display text-xl font-bold">Log a drink</h2>
+        <%= form_with url: drinking_records_path, method: :post, scope: :drinking_record, class: "grid grid-cols-1 sm:grid-cols-4 gap-2 items-end" do |form| %>
+          <label class="fieldset sm:col-span-2">
+            <span class="label-text">Wine</span>
+            <%= form.select :cellar_entry_id,
+                            @available_wines.map { |wine| [ [wine_winery_name(wine), wine.wine_name, wine.vintage].compact_blank.join(" · "), wine.id ] },
+                            { prompt: "Select a wine" },
+                            class: "select select-bordered w-full", required: true %>
+          </label>
+
+          <label class="fieldset">
+            <span class="label-text">Quantity</span>
+            <%= form.number_field :quantity, value: 1, min: 1, class: "input input-bordered w-full" %>
+          </label>
+
+          <%= form.submit "Log drink", class: "btn btn-primary" %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%= render "happy_hour/feed", active_sessions: @active_sessions %>
+</section>

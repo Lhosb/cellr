@@ -189,12 +189,18 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "in_cellar", wine.state
     assert_nil wine.drunk_at
 
-    patch drink_cellar_wine_path(cellar, wine)
+    assert_difference("DrinkingRecord.count", 1) do
+      patch drink_cellar_wine_path(cellar, wine)
+    end
 
     assert_redirected_to cellar_wine_path(cellar, wine)
     wine.reload
     assert_equal "drunk", wine.state
     assert_not_nil wine.drunk_at
     assert_in_delta Time.current, wine.drunk_at, 5.seconds
+
+    session = @user.active_drinking_session
+    assert_not_nil session
+    assert_equal wine.id, session.drinking_records.order(:created_at).last.cellar_entry_id
   end
 end

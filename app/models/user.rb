@@ -6,10 +6,10 @@ class User < ApplicationRecord
   has_many :cellar_memberships, dependent: :destroy
   has_many :cellars, through: :cellar_memberships
   has_many :owned_cellars, class_name: "Cellar", foreign_key: :owner_id, inverse_of: :owner, dependent: :destroy
+  has_many :drinking_sessions, dependent: :destroy
+  has_many :drinking_records, through: :drinking_sessions
 
   scope :activated, -> { where.not(encrypted_password: [ "", nil ]) }
-  scope :currently_drunk, -> { where(drunk: true) }
-
   def default_cellar
     membership = cellar_memberships.default_for_user.includes(:cellar).first
     membership&.cellar
@@ -35,6 +35,14 @@ class User < ApplicationRecord
   # An "activated" user has completed registration and set a password.
   def activated?
     encrypted_password.present?
+  end
+
+  def active_drinking_session(date: Date.current)
+    drinking_sessions.active.for_date(date).order(last_activity_at: :desc, id: :desc).first
+  end
+
+  def in_active_drinking_session?(date: Date.current)
+    active_drinking_session(date:).present?
   end
 
   private

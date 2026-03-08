@@ -14,7 +14,10 @@ Rails.application.routes.draw do
   root "home#show"
 
   resource :profile, only: [ :show, :update ]
-  resources :drunk_people, only: [ :index ]
+  resource :happy_hour, only: [ :show ], controller: "happy_hour"
+  resource :drinking_session, only: [ :create, :destroy ]
+  resources :drinking_records, only: [ :create ]
+  get "drunk_people", to: redirect("/happy_hour")
 
   resources :cellars do
     member do

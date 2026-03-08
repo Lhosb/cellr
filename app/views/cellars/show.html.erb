@@ -1,4 +1,7 @@
 <section class="space-y-4">
+  <% in_cellar_wines = @wines.select(&:in_cellar?) %>
+  <% past_wines = @wines.reject(&:in_cellar?) %>
+
   <div class="flex items-start justify-between gap-3">
     <div>
       <h1 class="font-display text-2xl font-bold"><%= @cellar.name %></h1>
@@ -15,9 +18,17 @@
       <span class="stat-pill__number"><%= @wines.size %></span>
       <span class="stat-pill__label">Wines</span>
     </div>
+    <div class="stat-pill reveal reveal-d3">
+      <span class="stat-pill__number"><%= in_cellar_wines.size %></span>
+      <span class="stat-pill__label">In Cellar</span>
+    </div>
+    <div class="stat-pill reveal reveal-d3">
+      <span class="stat-pill__number"><%= past_wines.size %></span>
+      <span class="stat-pill__label">Past Wines</span>
+    </div>
     <% if drink_status_feature_enabled? %>
       <div class="stat-pill reveal reveal-d4">
-        <span class="stat-pill__number" style="color: var(--color-sage)"><%= @wines.count { |wine| wine_drink_status_key(wine) == "ready" } %></span>
+        <span class="stat-pill__number" style="color: var(--color-sage)"><%= in_cellar_wines.count { |wine| wine_drink_status_key(wine) == "ready" } %></span>
         <span class="stat-pill__label">Drink Soon</span>
       </div>
     <% end %>
@@ -146,12 +157,12 @@
 
   <div class="flex items-baseline justify-between pt-1">
     <h2 class="font-display text-2xl font-bold italic">In the cellar</h2>
-    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(@wines.size, "result") %></span>
+    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(in_cellar_wines.size, "result") %></span>
   </div>
 
-  <% if @wines.any? %>
+  <% if in_cellar_wines.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <% @wines.each_with_index do |wine, index| %>
+      <% in_cellar_wines.each_with_index do |wine, index| %>
         <%= link_to cellar_wine_path(@cellar, wine), class: "wine-card reveal reveal-d#{[(index % 5) + 1, 5].min}" do %>
           <div class="wine-card__vintage-watermark"><%= wine.vintage || "NV" %></div>
           <div class="wine-card__body">
@@ -211,7 +222,53 @@
   <% else %>
     <div class="wine-card">
       <div class="wine-card__body">
-        <p class="text-sm" style="color:var(--color-ink-light)">No wines found yet.</p>
+        <p class="text-sm" style="color:var(--color-ink-light)">No in-cellar wines found.</p>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="flex items-baseline justify-between pt-1">
+    <h2 class="font-display text-2xl font-bold italic">Past wines</h2>
+    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(past_wines.size, "result") %></span>
+  </div>
+
+  <% if past_wines.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <% past_wines.each_with_index do |wine, index| %>
+        <%= link_to cellar_wine_path(@cellar, wine), class: "wine-card reveal reveal-d#{[(index % 5) + 1, 5].min}" do %>
+          <div class="wine-card__vintage-watermark"><%= wine.vintage || "NV" %></div>
+          <div class="wine-card__body">
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div>
+                <div class="type-pill <%= wine_type_pill_class(wine.wine_type) %> mb-2">
+                  <span class="type-pill__dot <%= wine_type_dot_class(wine.wine_type) %>"></span>
+                  <%= wine.wine_type.presence || wine.varietal.presence || "Wine" %>
+                </div>
+                <h3 class="font-display text-xl font-bold leading-tight"><%= wine.wine_name %></h3>
+                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery.normalized_name.titleize, wine.region.presence].compact.join(" · ") %></p>
+              </div>
+              <span class="chip">Past</span>
+            </div>
+
+            <% if wine.drunk_at.present? %>
+              <p class="text-xs" style="color:var(--color-ink-light)">Drunk on <%= wine.drunk_at.strftime("%b %-d, %Y") %></p>
+            <% end %>
+
+            <% if wine.tags.any? %>
+              <div class="flex gap-1.5 mt-2.5 flex-wrap">
+                <% wine.tags.each do |tag| %>
+                  <span class="chip" style="padding:0.15rem 0.55rem;font-size:0.6rem"><%= tag.name %></span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="wine-card">
+      <div class="wine-card__body">
+        <p class="text-sm" style="color:var(--color-ink-light)">No past wines found.</p>
       </div>
     </div>
   <% end %>

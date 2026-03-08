@@ -1,0 +1,15 @@
+<div id="happy_hour_feed">
+  <% if active_sessions.any? %>
+    <div class="grid grid-cols-1 gap-3">
+      <% active_sessions.each do |session| %>
+        <%= render "happy_hour/session", session: %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="wine-card">
+      <div class="wine-card__body">
+        <p class="text-sm" style="color:var(--color-ink-light)">No active Happy Hour sessions right now.</p>
+      </div>
+    </div>
+  <% end %>
+</div>

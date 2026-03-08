@@ -41,7 +41,7 @@
             <% if user_signed_in? %>
               <%= link_to "Home", root_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
               <%= link_to "Cellars", cellars_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
-              <%= link_to "Drunk", drunk_people_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
+              <%= link_to "Happy Hour", happy_hour_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
               <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
             <% else %>
               <%= link_to "Sign In", new_user_session_path, class: "btn btn-xs border-0 bg-base-100/10 text-base-100 hover:bg-base-100/20" %>
@@ -84,11 +84,11 @@
             <span>Cellars</span>
           <% end %>
 
-          <%= link_to drunk_people_path, class: "nav-item #{current_page?(drunk_people_path) ? 'nav-item--active' : ''}" do %>
+          <%= link_to happy_hour_path, class: "nav-item #{current_page?(happy_hour_path) ? 'nav-item--active' : ''}" do %>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
-            <span>Drunk</span>
+            <span>Happy Hour</span>
           <% end %>
 
           <% if user_signed_in? %>

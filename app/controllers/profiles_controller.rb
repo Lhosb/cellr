@@ -4,8 +4,17 @@ class ProfilesController < ApplicationController
   end
 
   def update
-    current_user.update!(profile_params)
-    publish_drunk_announcement(current_user) if current_user.saved_change_to_drunk? && current_user.drunk?
+    ActiveRecord::Base.transaction do
+      current_user.update!(profile_params)
+
+      case params[:drinking_status]
+      when "start"
+        DrinkingSessions::Start.call(user: current_user)
+      when "stop"
+        DrinkingSessions::Stop.call(user: current_user)
+      end
+    end
+
     redirect_to profile_path, notice: "Profile updated"
   rescue ActiveRecord::RecordInvalid
     @user = current_user
@@ -15,11 +24,6 @@ class ProfilesController < ApplicationController
   private
 
   def profile_params
-    params.require(:user).permit(:name, :drunk)
-  end
-
-  # TODO: implement drunk announcement broadcast (ActionCable / Turbo Stream)
-  def publish_drunk_announcement(user)
-    Rails.logger.info "[DrunkAnnouncement] #{user.email} is now drunk"
+    params.require(:user).permit(:name)
   end
 end

@@ -4,10 +4,14 @@ module Wines
   class TransitionStateTest < ActiveSupport::TestCase
     test "drink transitions wine state" do
       wine = build_cellar.wines.create!(winery: winery_named("Tempier"), wine_name: "Bandol", vintage: 2022)
+      actor = build_user
 
-      TransitionState.new(wine:, event: :drink, actor: build_user).call
+      assert_difference("DrinkingRecord.count", 1) do
+        TransitionState.new(wine:, event: :drink, actor:).call
+      end
 
       assert_equal "drunk", wine.reload.state
+      assert_equal actor.id, wine.reload.drinking_records.order(:created_at).last.drinking_session.user_id
     end
 
     test "raises for invalid transition" do

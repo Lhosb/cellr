@@ -12,11 +12,21 @@ class ProfilesControllerTest < ActionDispatch::IntegrationTest
     assert_match "Profile", response.body
   end
 
-  test "update changes name and drunk flag" do
-    patch profile_path, params: { user: { name: "Luke", drunk: true } }
+  test "update changes name and starts happy hour session" do
+    patch profile_path, params: { user: { name: "Luke" }, drinking_status: "start" }
 
     assert_redirected_to profile_path
     assert_equal "Luke", @user.reload.name
-    assert @user.drunk
+    assert @user.in_active_drinking_session?
+  end
+
+  test "update can stop active happy hour session" do
+    DrinkingSessions::Start.call(user: @user)
+
+    patch profile_path, params: { user: { name: "Luke" }, drinking_status: "stop" }
+
+    assert_redirected_to profile_path
+    assert_equal "Luke", @user.reload.name
+    assert_not @user.in_active_drinking_session?
   end
 end

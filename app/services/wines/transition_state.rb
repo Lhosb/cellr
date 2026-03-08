@@ -24,7 +24,7 @@ module Wines
         @machine.run_before_callbacks(transition)
         @machine.run_around_callbacks(transition) do
           attrs = { state: to }
-          attrs[:drunk_at] = Time.current if to == :drunk
+          attrs[:drunk_at] = transition.context[:consumed_at] if to == :drunk
           attrs[:drunk_at] = nil if to == :in_cellar
           @wine.update!(attrs)
         end

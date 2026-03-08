@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_07_233746) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_08_004000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -50,6 +50,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_233746) do
     t.index ["owner_id"], name: "index_cellars_on_owner_id"
   end
 
+  create_table "drinking_records", force: :cascade do |t|
+    t.bigint "cellar_entry_id", null: false
+    t.datetime "consumed_at", null: false
+    t.datetime "created_at", null: false
+    t.bigint "drinking_session_id", null: false
+    t.integer "quantity", default: 1, null: false
+    t.text "tasting_notes"
+    t.datetime "updated_at", null: false
+    t.index ["cellar_entry_id"], name: "index_drinking_records_on_cellar_entry_id"
+    t.index ["drinking_session_id", "consumed_at"], name: "index_drinking_records_on_session_and_consumed_at"
+    t.index ["drinking_session_id"], name: "index_drinking_records_on_drinking_session_id"
+    t.check_constraint "quantity > 0", name: "check_drinking_records_quantity_positive"
+  end
+
+  create_table "drinking_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "ended_at"
+    t.datetime "last_activity_at", null: false
+    t.datetime "started_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["date", "ended_at", "last_activity_at", "id"], name: "index_drinking_sessions_on_active_feed", order: { last_activity_at: :desc, id: :desc }
+    t.index ["user_id", "date"], name: "index_drinking_sessions_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_drinking_sessions_on_user_id"
+    t.check_constraint "ended_at IS NULL OR ended_at >= started_at", name: "check_drinking_sessions_ended_after_start"
+  end
+
   create_table "flipper_features", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "key", null: false
@@ -66,6 +94,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_233746) do
     t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
   end
 
+  create_table "noticed_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "notifications_count"
+    t.jsonb "params"
+    t.bigint "record_id"
+    t.string "record_type"
+    t.string "type"
+    t.datetime "updated_at", null: false
+    t.index ["record_type", "record_id"], name: "index_noticed_events_on_record"
+  end
+
+  create_table "noticed_notifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "event_id", null: false
+    t.datetime "read_at", precision: nil
+    t.bigint "recipient_id", null: false
+    t.string "recipient_type", null: false
+    t.datetime "seen_at", precision: nil
+    t.string "type"
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_noticed_notifications_on_event_id"
+    t.index ["recipient_type", "recipient_id"], name: "index_noticed_notifications_on_recipient"
+  end
+
   create_table "tags", force: :cascade do |t|
     t.bigint "cellar_id", null: false
     t.datetime "created_at", null: false
@@ -77,7 +129,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_233746) do
 
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.boolean "drunk", default: false, null: false
     t.string "email", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "name"
@@ -139,6 +190,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_07_233746) do
   add_foreign_key "cellar_memberships", "cellars"
   add_foreign_key "cellar_memberships", "users"
   add_foreign_key "cellars", "users", column: "owner_id"
+  add_foreign_key "drinking_records", "drinking_sessions"
+  add_foreign_key "drinking_records", "wines", column: "cellar_entry_id"
+  add_foreign_key "drinking_sessions", "users"
   add_foreign_key "tags", "cellars"
   add_foreign_key "wine_tags", "tags"
   add_foreign_key "wine_tags", "wines"

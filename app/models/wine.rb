@@ -6,6 +6,7 @@ class Wine < ApplicationRecord
 
   has_many :wine_tags, dependent: :destroy
   has_many :tags, through: :wine_tags
+  has_many :drinking_records, foreign_key: :cellar_entry_id, inverse_of: :cellar_entry
 
   enum :state, { in_cellar: 0, drunk: 1 }, default: :in_cellar
 

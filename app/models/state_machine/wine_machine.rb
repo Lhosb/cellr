@@ -14,6 +14,17 @@ module StateMachine
       before_transition on: :drink do |_wine, transition|
         transition.context[:consumed_at] ||= Time.current
       end
+
+      after_transition on: :drink, to: :drunk do |wine, transition|
+        actor = transition.context[:actor]
+        next unless actor
+
+        DrinkingRecords::Create.call(
+          user: actor,
+          cellar_entry: wine,
+          consumed_at: transition.context[:consumed_at]
+        )
+      end
     end
   end
 end

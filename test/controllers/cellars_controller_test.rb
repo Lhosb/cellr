@@ -109,6 +109,29 @@ class CellarsControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "Invite People", response.body
   end
 
+  test "show separates in-cellar and past wines by state" do
+    cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
+    in_cellar_wine = cellar.wines.create!(winery: winery_named("Coche-Dury"), wine_name: "Bourgogne", vintage: 2021, state: :in_cellar)
+    past_wine = cellar.wines.create!(winery: winery_named("Ridge"), wine_name: "Monte Bello", vintage: 2018, state: :drunk, drunk_at: Time.current)
+
+    get cellar_path(cellar)
+
+    assert_response :ok
+    assert_select "h2", text: "In the cellar"
+    assert_select "h2", text: "Past wines"
+    assert_select "h3", text: in_cellar_wine.wine_name, count: 1
+    assert_select "h3", text: past_wine.wine_name, count: 1
+
+    in_cellar_section = response.body.split("<h2 class=\"font-display text-2xl font-bold italic\">In the cellar</h2>", 2).last
+    in_cellar_section = in_cellar_section.split("<h2 class=\"font-display text-2xl font-bold italic\">Past wines</h2>", 2).first
+
+    past_wines_section = response.body.split("<h2 class=\"font-display text-2xl font-bold italic\">Past wines</h2>", 2).last
+
+    assert_includes in_cellar_section, in_cellar_wine.wine_name
+    assert_not_includes in_cellar_section, past_wine.wine_name
+    assert_includes past_wines_section, past_wine.wine_name
+  end
+
   test "settings page shows rename and invite management" do
     cellar = @user.cellar_memberships.find_by!(role: :owner).cellar
 

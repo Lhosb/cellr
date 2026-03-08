@@ -1,0 +1,31 @@
+<% session_records = session.drinking_records.sort_by(&:consumed_at).reverse %>
+<% latest_record = session_records.first %>
+
+<article id="<%= dom_id(session) %>" class="wine-card">
+  <div class="wine-card__body space-y-2">
+    <div class="flex items-center justify-between gap-2">
+      <h2 class="font-display text-xl font-bold"><%= session.user.name.presence || "Mystery Sipper" %></h2>
+      <span class="chip chip--active"><%= session.status_label %></span>
+    </div>
+
+    <% if session_records.any? %>
+      <ul class="space-y-2">
+        <% session_records.each do |record| %>
+          <% wine = record.cellar_entry %>
+          <li class="text-sm" style="color:var(--color-ink-light)">
+            <strong><%= [wine_winery_name(wine), wine.wine_name].compact_blank.join(" · ") %></strong>
+            <% if wine.vintage.present? %>
+              (<%= wine.vintage %>)
+            <% end %>
+            · <%= time_ago_in_words(record.consumed_at) %> ago
+            <% if latest_record.id == record.id %>
+              <span class="chip chip--active ml-2">Currently drinking</span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm" style="color:var(--color-ink-light)">Just started — no drinks logged yet.</p>
+    <% end %>
+  </div>
+</article>
