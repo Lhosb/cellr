@@ -7,9 +7,9 @@ module Wines
 
     def call
       relation = @scope
-      relation = relation.where(cellar_id: cellar_id) if cellar_id.present?
+      relation = relation.joins(:cellar_entries).where(cellar_entries: { cellar_id: cellar_id }) if cellar_id.present?
       relation = relation.search_text(query) if query.present?
-      relation = relation.where("LOWER(normalized_winery) = ?", normalize(winery)) if winery.present?
+      relation = relation.joins(:winery).where("LOWER(wineries.name) = ?", normalize(winery)) if winery.present?
       relation = relation.joins(:region_record).where(regions: { normalized_name: normalize(region) }) if region.present?
       relation = relation.where(wine_type:) if wine_type.present?
       relation = relation.joins(:tags).where(tags: { name: normalize(tag) }) if tag.present?

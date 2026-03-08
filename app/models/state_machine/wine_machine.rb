@@ -25,6 +25,13 @@ module StateMachine
           consumed_at: transition.context[:consumed_at]
         )
       end
+
+      after_transition on: :restore, to: :in_cellar do |wine, transition|
+        cellar = transition.context[:cellar]
+        next unless cellar
+
+        CellarEntry.restore_for_cellar!(wine:, cellar:)
+      end
     end
   end
 end

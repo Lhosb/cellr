@@ -29,11 +29,11 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Strawberry, citrus, saline finish", body["tasting_notes"]
   end
 
-  test "create allows duplicate wines in the same cellar" do
+  test "create reuses existing global wine identity in the same cellar" do
     cellar = build_cellar(owner: @user)
     cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
 
-    assert_difference("Wine.count", 1) do
+    assert_no_difference("Wine.count") do
       post cellar_wines_path(cellar), params: {
         wine: {
           winery: "  domaine tempier ",
@@ -81,7 +81,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   test "update allows updating wine to match another existing wine" do
     cellar = build_cellar(owner: @user)
-    cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
+    existing = cellar.wines.create!(winery: winery_named("Domaine Tempier"), wine_name: "Bandol Rose", vintage: 2022)
     wine = cellar.wines.create!(winery: winery_named("Different"), wine_name: "Label", vintage: 2020)
 
     patch cellar_wine_path(cellar, wine), params: {
@@ -93,7 +93,11 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     }, as: :json
 
     assert_response :ok
-    assert_equal "domaine tempier", wine.reload.winery.normalized_name
+    matched_ids = cellar.wines.joins(:winery)
+                       .where("wineries.normalized_name = ?", "domaine tempier")
+                       .where("LOWER(wines.name) = ?", "bandol rose")
+                       .pluck(:id)
+    assert_equal [ existing.id ], matched_ids
   end
 
   test "create assigns comma-separated tags" do
@@ -201,10 +205,10 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
     session = @user.active_drinking_session
     assert_not_nil session
-    assert_equal wine.id, session.drinking_records.order(:created_at).last.cellar_entry_id
+    assert_equal cellar.cellar_entries.find_by(wine_id: wine.id)&.id, session.drinking_records.order(:created_at).last.cellar_entry_id
   end
 
-  test "re_add creates a new in-cellar wine and preserves drunk original" do
+  test "re_add reopens cellar entry without creating duplicate global wine" do
     cellar = build_cellar(owner: @user)
     drunk_wine = cellar.wines.create!(winery: winery_named("Domaine Leroy"), wine_name: "Musigny", vintage: 2015)
 
@@ -215,21 +219,27 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "drunk", drunk_wine.reload.state
     original_record_count = DrinkingRecord.count
 
-    assert_difference("Wine.count", 1) do
+    assert_no_difference("Wine.count") do
       post re_add_cellar_wine_path(cellar, drunk_wine)
     end
 
-    assert_redirected_to cellar_wine_path(cellar, Wine.order(:created_at).last)
+    assert_redirected_to cellar_wine_path(cellar, drunk_wine)
 
     drunk_wine.reload
-    assert_equal "drunk", drunk_wine.state
+    assert_equal "in_cellar", drunk_wine.state
+    assert_nil drunk_wine.drunk_at
     assert_equal original_record_count, DrinkingRecord.count
 
-    re_added = cellar.wines.order(:created_at).last
-    assert_equal "in_cellar", re_added.state
-    assert_nil re_added.drunk_at
-    assert_equal drunk_wine.wine_name, re_added.wine_name
-    assert_equal drunk_wine.winery_id, re_added.winery_id
+    entries = cellar.cellar_entries.where(wine_id: drunk_wine.id).order(:created_at)
+    assert_equal 2, entries.count
+
+    past_entry = entries.find { |entry| entry.drunk? }
+    in_cellar_entry = entries.find { |entry| entry.in_cellar? }
+
+    assert_not_nil past_entry
+    assert_not_nil in_cellar_entry
+    assert_not_nil past_entry.drunk_at
+    assert_nil in_cellar_entry.drunk_at
   end
 
   test "re_add rejects wines that are already in cellar" do

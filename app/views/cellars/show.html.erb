@@ -1,6 +1,7 @@
 <section class="space-y-4">
-  <% in_cellar_wines = @wines.select(&:in_cellar?) %>
-  <% past_wines = @wines.reject(&:in_cellar?) %>
+  <% in_cellar_entries = @cellar_entries.select { |entry| entry.in_cellar? && entry.drunk_at.blank? && entry.wine&.in_cellar? } %>
+  <% past_entries = @cellar_entries.reject { |entry| entry.in_cellar? && entry.drunk_at.blank? && entry.wine&.in_cellar? } %>
+  <% unique_wine_count = @cellar_entries.map(&:wine_id).uniq.size %>
 
   <div class="flex items-start justify-between gap-3">
     <div>
@@ -15,20 +16,20 @@
 
   <div class="flex gap-2 overflow-x-auto pb-1" style="scrollbar-width:none">
     <div class="stat-pill reveal reveal-d2">
-      <span class="stat-pill__number"><%= @wines.size %></span>
+      <span class="stat-pill__number"><%= unique_wine_count %></span>
       <span class="stat-pill__label">Wines</span>
     </div>
     <div class="stat-pill reveal reveal-d3">
-      <span class="stat-pill__number"><%= in_cellar_wines.size %></span>
+      <span class="stat-pill__number"><%= in_cellar_entries.size %></span>
       <span class="stat-pill__label">In Cellar</span>
     </div>
     <div class="stat-pill reveal reveal-d3">
-      <span class="stat-pill__number"><%= past_wines.size %></span>
+      <span class="stat-pill__number"><%= past_entries.size %></span>
       <span class="stat-pill__label">Past Wines</span>
     </div>
     <% if drink_status_feature_enabled? %>
       <div class="stat-pill reveal reveal-d4">
-        <span class="stat-pill__number" style="color: var(--color-sage)"><%= in_cellar_wines.count { |wine| wine_drink_status_key(wine) == "ready" } %></span>
+        <span class="stat-pill__number" style="color: var(--color-sage)"><%= in_cellar_entries.count { |entry| wine_drink_status_key(entry) == "ready" } %></span>
         <span class="stat-pill__label">Drink Soon</span>
       </div>
     <% end %>
@@ -162,23 +163,24 @@
 
   <div class="flex items-baseline justify-between pt-1">
     <h2 class="font-display text-2xl font-bold italic">In the cellar</h2>
-    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(in_cellar_wines.size, "result") %></span>
+    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(in_cellar_entries.size, "result") %></span>
   </div>
 
-  <% if in_cellar_wines.any? %>
+  <% if in_cellar_entries.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <% in_cellar_wines.each_with_index do |wine, index| %>
+      <% in_cellar_entries.each_with_index do |entry, index| %>
+        <% wine = entry.wine %>
         <%= link_to cellar_wine_path(@cellar, wine), class: "wine-card reveal reveal-d#{[(index % 5) + 1, 5].min}" do %>
-          <div class="wine-card__vintage-watermark"><%= wine.vintage || "NV" %></div>
+          <div class="wine-card__vintage-watermark"><%= entry.vintage || "NV" %></div>
           <div class="wine-card__body">
             <div class="flex items-start justify-between gap-2 mb-3">
               <div>
-                <div class="type-pill <%= wine_type_pill_class(wine.wine_type) %> mb-2">
-                  <span class="type-pill__dot <%= wine_type_dot_class(wine.wine_type) %>"></span>
-                  <%= wine.wine_type.presence || wine.varietal.presence || "Wine" %>
+                <div class="type-pill <%= wine_type_pill_class(entry.wine_type) %> mb-2">
+                  <span class="type-pill__dot <%= wine_type_dot_class(entry.wine_type) %>"></span>
+                  <%= entry.wine_type.presence || entry.varietal.presence || "Wine" %>
                 </div>
-                <h3 class="font-display text-xl font-bold leading-tight"><%= wine.wine_name %></h3>
-                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery.normalized_name.titleize, wine.region.presence].compact.join(" · ") %></p>
+                <h3 class="font-display text-xl font-bold leading-tight"><%= entry.wine_name %></h3>
+                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [entry.winery.normalized_name.titleize, entry.region.presence].compact.join(" · ") %></p>
               </div>
               <div class="wine-card__quantity">×1</div>
             </div>
@@ -187,21 +189,21 @@
 
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 text-xs" style="color:var(--color-ink-light)">
-                <span><%= wine.purchase_price_cents.present? ? number_to_currency(wine.purchase_price_cents / 100.0) : "—" %> / btl</span>
+                <span><%= entry.purchase_price_cents.present? ? number_to_currency(entry.purchase_price_cents / 100.0) : "—" %> / btl</span>
                 <span style="color:var(--color-ink-faint)">·</span>
                 <span><%= @cellar.name %></span>
               </div>
               <% if drink_status_feature_enabled? %>
-                <span class="drink-status drink-status--<%= wine_drink_status_key(wine) %>">
+                <span class="drink-status drink-status--<%= wine_drink_status_key(entry) %>">
                   <span class="drink-status__dot"></span>
-                  <span><%= wine_drink_status_label(wine) %></span>
+                  <span><%= wine_drink_status_label(entry) %></span>
                 </span>
               <% end %>
             </div>
 
             <% if drink_status_feature_enabled? %>
               <div class="drink-window">
-                <div class="drink-window__fill <%= wine_drink_status_key(wine) == 'aging' ? 'drink-window__fill--aging' : '' %>" style="width:<%= wine_drink_status_key(wine) == 'ready' ? 82 : 34 %>%"></div>
+                <div class="drink-window__fill <%= wine_drink_status_key(entry) == 'aging' ? 'drink-window__fill--aging' : '' %>" style="width:<%= wine_drink_status_key(entry) == 'ready' ? 82 : 34 %>%"></div>
               </div>
             <% end %>
 
@@ -213,12 +215,12 @@
               </div>
             <% end %>
 
-            <% if wine.notes.present? %>
-              <p class="text-xs mt-2" style="color:var(--color-ink-light)"><strong>Notes:</strong> <%= truncate(wine.notes, length: 140) %></p>
+            <% if entry.notes.present? %>
+              <p class="text-xs mt-2" style="color:var(--color-ink-light)"><strong>Notes:</strong> <%= truncate(entry.notes, length: 140) %></p>
             <% end %>
 
-            <% if wine.tasting_notes.present? %>
-              <p class="text-xs mt-1" style="color:var(--color-ink-light)"><strong>Tasting:</strong> <%= truncate(wine.tasting_notes, length: 180) %></p>
+            <% if entry.tasting_notes.present? %>
+              <p class="text-xs mt-1" style="color:var(--color-ink-light)"><strong>Tasting:</strong> <%= truncate(entry.tasting_notes, length: 180) %></p>
             <% end %>
           </div>
         <% end %>
@@ -234,29 +236,30 @@
 
   <div class="flex items-baseline justify-between pt-1">
     <h2 class="font-display text-2xl font-bold italic">Past wines</h2>
-    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(past_wines.size, "result") %></span>
+    <span class="text-xs" style="color:var(--color-ink-faint)"><%= pluralize(past_entries.size, "result") %></span>
   </div>
 
-  <% if past_wines.any? %>
+  <% if past_entries.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <% past_wines.each_with_index do |wine, index| %>
+      <% past_entries.each_with_index do |entry, index| %>
+        <% wine = entry.wine %>
         <%= link_to cellar_wine_path(@cellar, wine), class: "wine-card reveal reveal-d#{[(index % 5) + 1, 5].min}" do %>
-          <div class="wine-card__vintage-watermark"><%= wine.vintage || "NV" %></div>
+          <div class="wine-card__vintage-watermark"><%= entry.vintage || "NV" %></div>
           <div class="wine-card__body">
             <div class="flex items-start justify-between gap-2 mb-3">
               <div>
-                <div class="type-pill <%= wine_type_pill_class(wine.wine_type) %> mb-2">
-                  <span class="type-pill__dot <%= wine_type_dot_class(wine.wine_type) %>"></span>
-                  <%= wine.wine_type.presence || wine.varietal.presence || "Wine" %>
+                <div class="type-pill <%= wine_type_pill_class(entry.wine_type) %> mb-2">
+                  <span class="type-pill__dot <%= wine_type_dot_class(entry.wine_type) %>"></span>
+                  <%= entry.wine_type.presence || entry.varietal.presence || "Wine" %>
                 </div>
-                <h3 class="font-display text-xl font-bold leading-tight"><%= wine.wine_name %></h3>
-                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [wine.winery.normalized_name.titleize, wine.region.presence].compact.join(" · ") %></p>
+                <h3 class="font-display text-xl font-bold leading-tight"><%= entry.wine_name %></h3>
+                <p class="text-xs mt-0.5" style="color:var(--color-ink-light)"><%= [entry.winery.normalized_name.titleize, entry.region.presence].compact.join(" · ") %></p>
               </div>
               <span class="chip">Past</span>
             </div>
 
-            <% if wine.drunk_at.present? %>
-              <p class="text-xs" style="color:var(--color-ink-light)">Drunk on <%= wine.drunk_at.strftime("%b %-d, %Y") %></p>
+            <% if entry.drunk_at.present? %>
+              <p class="text-xs" style="color:var(--color-ink-light)">Drunk on <%= entry.drunk_at.strftime("%b %-d, %Y") %></p>
             <% end %>
 
             <% if wine.tags.any? %>

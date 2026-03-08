@@ -3,16 +3,18 @@ class WinesController < ApplicationController
   before_action :load_wine, only: [ :show, :edit, :update, :destroy, :drink, :re_add ]
 
   def index
-    @wines = Wines::FilterQuery.new(scope: Wine.all, params: filter_params).call.includes(:cellar)
+    @wines = Wines::FilterQuery.new(scope: Wine.all, params: filter_params).call.includes(:winery, :region_record, :cellar_entries)
   end
 
   def create
-    attributes, tag_names = normalized_wine_payload
+    wine_attributes, cellar_entry_attributes, tag_names = normalized_wine_payload
 
     wine = nil
     ActiveRecord::Base.transaction do
-      wine = @cellar.wines.create!(attributes)
-      sync_cellar_entry!(wine)
+      wine = find_or_initialize_global_wine(wine_attributes)
+      wine.assign_attributes(wine_attributes)
+      wine.save!
+      sync_cellar_entry!(wine, cellar_entry_attributes)
       assign_tags(wine, tag_names)
     end
 
@@ -34,7 +36,7 @@ class WinesController < ApplicationController
 
   def destroy
     @cellar.cellar_entries.find_by(wine_id: @wine.id)&.destroy!
-    @wine.destroy!
+    @wine.destroy! if @wine.cellar_entries.reload.none?
 
     respond_to do |format|
       format.html { redirect_to cellar_path(@cellar), notice: "Wine deleted" }
@@ -60,26 +62,12 @@ class WinesController < ApplicationController
       return
     end
 
-    re_added_wine = nil
-    ActiveRecord::Base.transaction do
-      re_added_wine = @cellar.wines.create!(
-        winery: @wine.winery,
-        wine_name: @wine.wine_name,
-        vintage: @wine.vintage,
-        varietal: @wine.varietal,
-        wine_type: @wine.wine_type,
-        region: @wine.region,
-        region_id: @wine.region_id,
-        bottle_size_ml: @wine.bottle_size_ml,
-        purchase_price_cents: @wine.purchase_price_cents,
-        notes: @wine.notes,
-        tasting_notes: @wine.tasting_notes,
-        state: :in_cellar,
-        drunk_at: nil
-      )
-      re_added_wine.tags = @wine.tags
-      sync_cellar_entry!(re_added_wine)
-    end
+    re_added_wine = Wines::TransitionState.new(
+      wine: @wine,
+      event: :restore,
+      actor: current_user,
+      context: { cellar: @cellar }
+    ).call
 
     respond_to do |format|
       format.html { redirect_to cellar_wine_path(@cellar, re_added_wine), notice: "Wine re-added to cellar" }
@@ -88,14 +76,27 @@ class WinesController < ApplicationController
   end
 
   def update
-    attributes, tag_names = normalized_wine_payload
+    wine_attributes, cellar_entry_attributes, tag_names = normalized_wine_payload
 
     updated = false
     ActiveRecord::Base.transaction do
-      updated = @wine.update(attributes)
-      if updated
-        sync_cellar_entry!(@wine)
-        assign_tags(@wine, tag_names)
+      target_wine = find_or_initialize_global_wine(wine_attributes)
+
+      if target_wine.persisted? && target_wine.id != @wine.id
+        target_wine.update!(wine_attributes)
+        cellar_entry = @cellar.cellar_entries.find_by(wine_id: @wine.id)
+        cellar_entry&.update!(wine: target_wine)
+        sync_cellar_entry!(target_wine, cellar_entry_attributes)
+        assign_tags(target_wine, tag_names)
+        @wine.destroy! if @wine.cellar_entries.reload.none?
+        @wine = target_wine
+        updated = true
+      else
+        updated = @wine.update(wine_attributes)
+        if updated
+          sync_cellar_entry!(@wine, cellar_entry_attributes)
+          assign_tags(@wine, tag_names)
+        end
       end
     end
 
@@ -128,37 +129,67 @@ class WinesController < ApplicationController
 
     # Resolve winery string to a Winery record
     winery_name = permitted.delete("winery")
-    if winery_name.present?
-      permitted["winery"] = Winery.find_or_create_normalized(winery_name)
-    end
+    winery = winery_name.present? ? Winery.find_or_create_normalized(winery_name) : nil
 
-    region_name = permitted["region"]
+    region_name = permitted.delete("region")
     region_record = region_name.present? ? Region.find_or_create_normalized(region_name) : Region.unknown
-    permitted["region"] = region_record.name
-    permitted["region_id"] = region_record.id
+
+    purchase_price_cents = permitted.delete("purchase_price_cents")
 
     if permitted["purchase_price"].present?
       dollars = BigDecimal(permitted.delete("purchase_price").to_s)
-      permitted["purchase_price_cents"] = (dollars * 100).round(0).to_i
+      purchase_price_cents = (dollars * 100).round(0).to_i
     else
       permitted.delete("purchase_price")
     end
 
-    [ permitted, parse_tag_names(tag_list) ]
+    purchase_price_cents = purchase_price_cents.present? ? purchase_price_cents.to_i : 0
+
+    wine_attributes = {
+      winery:,
+      name: permitted.delete("wine_name"),
+      varietal: permitted.delete("varietal"),
+      wine_type: permitted.delete("wine_type"),
+      region_id: region_record.id,
+      notes: permitted["notes"],
+      tasting_notes: permitted["tasting_notes"]
+    }
+
+    cellar_entry_attributes = {
+      vintage: permitted.delete("vintage"),
+      bottle_size_ml: permitted.delete("bottle_size_ml"),
+      notes: permitted.delete("notes"),
+      tasting_notes: permitted.delete("tasting_notes"),
+      purchase_price_cents:
+    }
+
+    [ wine_attributes, cellar_entry_attributes, parse_tag_names(tag_list) ]
   end
 
-  def sync_cellar_entry!(wine)
+  def sync_cellar_entry!(wine, cellar_entry_attributes)
     cellar_entry = @cellar.cellar_entries.find_or_initialize_by(wine_id: wine.id)
-    cellar_entry.assign_attributes(
-      vintage: wine.vintage,
-      purchase_price_cents: wine.purchase_price_cents,
-      state: wine.state,
-      drunk_at: wine.drunk_at,
-      bottle_size_ml: wine.bottle_size_ml,
-      notes: wine.notes,
-      tasting_notes: wine.tasting_notes
-    )
+
+    attributes = cellar_entry_attributes.compact
+    if cellar_entry_attributes.key?(:drunk_at) && cellar_entry_attributes[:drunk_at].nil?
+      attributes[:drunk_at] = nil
+    end
+
+    cellar_entry.assign_attributes(attributes)
     cellar_entry.save!
+  end
+
+  def find_or_initialize_global_wine(attributes)
+    winery = attributes.fetch(:winery)
+    normalized_name = Wine.normalize_for_key(attributes[:name])
+    normalized_varietal = Wine.normalize_for_key(attributes[:varietal])
+    normalized_wine_type = Wine.normalize_for_key(attributes[:wine_type])
+
+    scope = Wine.where(winery_id: winery.id)
+                .where("LOWER(name) = ?", normalized_name)
+                .where("COALESCE(LOWER(varietal), '') = ?", normalized_varietal)
+                .where("COALESCE(LOWER(wine_type), '') = ?", normalized_wine_type)
+
+    scope.first_or_initialize
   end
 
   def parse_tag_names(value)
@@ -175,7 +206,7 @@ class WinesController < ApplicationController
   end
 
   def load_wine
-    @wine = @cellar.wines.find(params[:id])
+    @wine = @cellar.wines.distinct.find(params[:id])
   end
 
   def accessible_cellars

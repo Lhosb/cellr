@@ -1,7 +1,7 @@
 require "test_helper"
 
 class WineTest < ActiveSupport::TestCase
-  test "normalizes identity and builds canonical key" do
+  test "normalizes wine and region identity" do
     cellar = build_cellar
 
     wine = cellar.wines.create!(
@@ -11,10 +11,8 @@ class WineTest < ActiveSupport::TestCase
       region: "  Provence  "
     )
 
-    assert_equal "domaine tempier", wine.normalized_winery
     assert_equal "Bandol Rose", wine.wine_name
-    assert_equal "bandol rose", wine.normalized_wine_name
-    assert_equal "domaine tempier|bandol rose|nv", wine.canonical_key
+    assert_equal "Provence", wine.region_name
   end
 
   test "duplicate candidates returns exact canonical match first" do

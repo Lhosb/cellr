@@ -13,7 +13,13 @@ class CellarsController < ApplicationController
   end
 
   def show
-    @wines = Wines::FilterQuery.new(scope: @cellar.wines, params: filter_params).call
+    filtered_wines = Wines::FilterQuery.new(scope: @cellar.wines, params: filter_params).call
+    filtered_wine_ids = filtered_wines.unscope(:order).select(:id)
+
+    @cellar_entries = @cellar.cellar_entries
+                            .where(wine_id: filtered_wine_ids)
+                            .includes(wine: [ :winery, :region_record, :tags ])
+                            .order(created_at: :desc, id: :desc)
 
     respond_to do |format|
       format.html
