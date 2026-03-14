@@ -24,10 +24,20 @@ development:
     <<: *default
     database: cellr_development
 
+  cache:
+    <<: *primary_development
+    database: cellr_development_cache
+    migrations_paths: db/cache_migrate
+
   queue:
     <<: *primary_development
     database: cellr_development_queue
     migrations_paths: db/queue_migrate
+
+  cable:
+    <<: *primary_development
+    database: cellr_development_cable
+    migrations_paths: db/cable_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
