@@ -64,6 +64,9 @@
         <% else %>
           <%= button_to "Start Happy Hour", drinking_session_path, method: :post, class: "btn btn-sm btn-primary" %>
         <% end %>
+        <% if ENV['ADMIN_EMAIL'].present? && current_user&.email == ENV['ADMIN_EMAIL'] %>
+          <%= link_to "Admin: Cellars", profile_admin_cellars_path, class: "btn btn-sm btn-outline" %>
+        <% end %>
       </div>
     </div>
   <% end %>

@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   root "home#show"
 
   resource :profile, only: [ :show, :update ]
+  # Admin pages under user profile/settings
+  get "profile/admin/cellars", to: "admin/cellars#index", as: :profile_admin_cellars
   resource :library, only: [ :show ], controller: "library"
   resource :happy_hour, only: [ :show ], controller: "happy_hour"
   resource :drinking_session, only: [ :create, :destroy ]

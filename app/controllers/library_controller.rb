@@ -4,11 +4,11 @@ class LibraryController < ApplicationController
     @wine_totals = Library::WineTotalsQuery.new(user_id: current_user.id).call
     @winery_totals = Library::WineryTotalsQuery.new(user_id: current_user.id).call
     # New library overview and visual sections (always available)
-    @overview = Library::OverviewQuery.new(user: current_user).call
-    @by_type = Library::ByTypeQuery.new(user: current_user).call
-    @top_cellared_wineries = Library::TopCellaredWineriesQuery.new(user: current_user).call(limit: 5)
-    @vintage_distribution = Library::VintageDistributionQuery.new(user: current_user).call
-    @top_cellared_wines = Library::TopCellaredWinesQuery.new(user: current_user).call(limit: 5)
+    @overview = Library::OverviewQuery.new.call
+    @by_type = Library::ByTypeQuery.new.call
+    @top_cellared_wineries = Library::TopCellaredWineriesQuery.new.call(limit: 5)
+    @vintage_distribution = Library::VintageDistributionQuery.new.call
+    @top_cellared_wines = Library::TopCellaredWinesQuery.new.call(limit: 5)
     @active_sessions_count = HappyHour::ActiveSessionsQuery.new.call.count
 
     @selected_wine_id = Integer(params[:wine_id], exception: false)

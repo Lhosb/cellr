@@ -80,7 +80,12 @@ class CellarsController < ApplicationController
   end
 
   def set_cellar
-    @cellar = accessible_cellars.find(params[:id])
+    # Allow global access for admin user defined by ADMIN_EMAIL env
+    if ENV["ADMIN_EMAIL"].present? && current_user&.email == ENV["ADMIN_EMAIL"]
+      @cellar = Cellar.find(params[:id])
+    else
+      @cellar = accessible_cellars.find(params[:id])
+    end
   end
 
   def accessible_cellars
