@@ -16,6 +16,9 @@
             <p class="happy-hour-records__label">Recent pours · <%= pluralize(session_records.size, "bottle") %></p>
             <p class="happy-hour-records__headline">
               <%= [wine_winery_name(latest_wine), latest_wine&.wine_name].compact_blank.join(" · ").presence || "Mystery pour" %>
+              <% if latest_record.present? %>
+                <span class="chip chip--active" style="margin-left:0.5rem">🥂 Currently drinking</span>
+              <% end %>
             </p>
           </div>
           <span class="details-toggle__indicator" aria-hidden="true">
@@ -25,7 +28,7 @@
         </summary>
 
         <ul class="space-y-2 happy-hour-list">
-          <% session_records.each do |record| %>
+          <% session_records.drop(1).each do |record| %>
             <% wine = record.cellar_entry %>
             <% winery_name = wine_winery_name(wine).presence || "Unknown winery" %>
             <% wine_name = wine&.wine_name.presence || "Mystery pour" %>
@@ -40,9 +43,7 @@
                 </p>
                 <div class="happy-hour-pour__meta">
                   <span><%= time_ago_in_words(record.consumed_at) %> ago</span>
-                  <% if latest_record.id == record.id %>
-                    <span class="chip chip--active">🥂 Currently drinking</span>
-                  <% end %>
+
                 </div>
               </article>
             </li>

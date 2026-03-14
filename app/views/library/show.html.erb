@@ -4,6 +4,13 @@
       <h1 class="font-display text-2xl font-bold">Library</h1>
       <p class="text-sm" style="color:var(--color-ink-light)">Consumption totals across your shared cellar history.</p>
     </div>
+
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <%= link_to "Global", library_path(scope: 'global'), class: "btn btn-sm #{'btn-primary' if @view_scope == :global}" %>
+      <%= link_to "My cellars", library_path(scope: 'user'), class: "btn btn-sm #{'btn-primary' if @view_scope == :user}" %>
+    </div>
+  </div>
     <%= link_to "Back", cellars_path, class: "btn btn-sm" %>
   </div>
 
