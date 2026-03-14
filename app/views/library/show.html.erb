@@ -7,6 +7,19 @@
     <%= link_to "Back", cellars_path, class: "btn btn-sm" %>
   </div>
 
+  <%= render "library/hero" %>
+
+  <div class="space-y-3">
+    <%= render "library/right_now" %>
+    <%= render "library/by_the_glass" %>
+  </div>
+
+  <div class="space-y-3">
+    <%= render "library/top_wineries" %>
+    <%= render "library/vintage_distribution" %>
+    <%= render "library/most_loved" %>
+  </div>
+
   <%= form_with url: library_path, method: :get, class: "wine-card" do |form| %>
     <div class="wine-card__body space-y-2">
       <h2 class="font-display text-lg font-semibold">Vintage Breakdown</h2>
@@ -36,42 +49,4 @@
       </div>
     </div>
   <% end %>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <div class="wine-card">
-      <div class="wine-card__body space-y-2">
-        <h2 class="font-display text-lg font-semibold">Bottles Drank by Wine</h2>
-        <% if @wine_totals.any? %>
-          <ul class="space-y-1">
-            <% @wine_totals.each do |row| %>
-              <li class="flex items-center justify-between text-sm gap-2">
-                <%= link_to "#{row.winery_name} - #{row.wine_name}", library_path(wine_id: row.wine_id), class: "underline decoration-dotted" %>
-                <strong><%= row.bottles_drank.to_i %></strong>
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <p class="text-sm" style="color:var(--color-ink-light)">No consumption records yet.</p>
-        <% end %>
-      </div>
-    </div>
-
-    <div class="wine-card">
-      <div class="wine-card__body space-y-2">
-        <h2 class="font-display text-lg font-semibold">Bottles Drank by Winery</h2>
-        <% if @winery_totals.any? %>
-          <ul class="space-y-1">
-            <% @winery_totals.each do |row| %>
-              <li class="flex items-center justify-between text-sm gap-2">
-                <span><%= row.winery_name %></span>
-                <strong><%= row.bottles_drank.to_i %></strong>
-              </li>
-            <% end %>
-          </ul>
-        <% else %>
-          <p class="text-sm" style="color:var(--color-ink-light)">No consumption records yet.</p>
-        <% end %>
-      </div>
-    </div>
-  </div>
 </section>

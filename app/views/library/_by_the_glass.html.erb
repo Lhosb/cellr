@@ -1,0 +1,22 @@
+<div class="wine-card">
+  <div class="wine-card__body">
+    <h2 class="font-display text-lg font-semibold">By the glass</h2>
+    <% total = @by_type.sum { |r| r[:bottles] } %>
+    <% if total.zero? %>
+      <p class="text-sm" style="color:var(--color-ink-light)">No bottles in cellar yet.</p>
+    <% else %>
+      <div class="space-y-2 mt-2">
+        <% @by_type.each do |row| %>
+          <% pct = ((row[:bottles].to_f / total) * 100).round %>
+          <div class="text-sm flex items-center justify-between">
+            <span class="min-w-20"><%= row[:wine_type].to_s.titleize %></span>
+            <div class="flex-1 mx-3 bg-gray-200 h-3 rounded overflow-hidden">
+              <div class="bg-primary h-3" style="width: <%= pct %>%"></div>
+            </div>
+            <span class="w-12 text-right"><%= pct %>%</span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

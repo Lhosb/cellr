@@ -1,0 +1,25 @@
+<div class="wine-card">
+  <div class="wine-card__body">
+    <div class="mt-3 flex flex-wrap items-baseline gap-4">
+      <div class="text-center">
+        <div class="text-4xl font-serif font-bold"><%= @overview[:total_bottles] %></div>
+        <div class="text-xs" style="color:var(--color-ink-light)">bottles</div>
+      </div>
+
+      <div class="text-center">
+        <div class="text-4xl font-serif font-bold"><%= @overview[:total_wines] %></div>
+        <div class="text-xs" style="color:var(--color-ink-light)">wines</div>
+      </div>
+
+      <div class="text-center">
+        <div class="text-4xl font-serif font-bold"><%= @overview[:total_wineries] %></div>
+        <div class="text-xs" style="color:var(--color-ink-light)">wineries</div>
+      </div>
+
+      <div class="text-center">
+        <div class="text-4xl font-serif font-bold"><%= @overview[:drunk_tonight] %></div>
+        <div class="text-xs" style="color:var(--color-ink-light)">drunk tonight</div>
+      </div>
+    </div>
+  </div>
+</div>

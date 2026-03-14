@@ -1,0 +1,27 @@
+<div class="wine-card">
+  <div class="wine-card__body">
+    <h2 class="font-display text-lg font-semibold">Top wineries</h2>
+    <% total = @top_cellared_wineries.sum { |w| w.bottles.to_i } %>
+    <% if @top_cellared_wineries.any? %>
+      <ol class="space-y-2 mt-2">
+        <% @top_cellared_wineries.each_with_index do |row, idx| %>
+          <% pct = total.zero? ? 0 : ((row.bottles.to_i.to_f / total) * 100).round %>
+          <li class="flex items-center gap-3">
+            <div class="w-6 text-sm"><%= idx + 1 %>.</div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between text-sm">
+                <span class="truncate"><%= row.winery_name %></span>
+                <strong><%= row.bottles.to_i %> btl</strong>
+              </div>
+              <div class="mt-1 bg-gray-200 h-2 rounded overflow-hidden">
+                <div class="bg-primary h-2" style="width: <%= pct %>%"></div>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+    <% else %>
+      <p class="text-sm" style="color:var(--color-ink-light)">No bottles in cellar yet.</p>
+    <% end %>
+  </div>
+</div>

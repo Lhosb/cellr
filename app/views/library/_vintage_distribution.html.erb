@@ -1,0 +1,22 @@
+<div class="wine-card">
+  <div class="wine-card__body">
+    <h2 class="font-display text-lg font-semibold">Vintage distribution</h2>
+    <% if @vintage_distribution.any? %>
+      <% total = @vintage_distribution.sum { |r| r[:bottles].to_i } %>
+      <ul class="space-y-2 mt-2">
+        <% @vintage_distribution.each do |row| %>
+          <% pct = total.zero? ? 0 : ((row[:bottles].to_f / total) * 100).round %>
+          <li class="flex items-center gap-3 text-sm">
+            <div class="w-24"><%= row[:decade] %>s</div>
+            <div class="flex-1 bg-gray-200 h-3 rounded overflow-hidden mr-3">
+              <div class="bg-primary h-3" style="width: <%= pct %>%"></div>
+            </div>
+            <div class="w-20 text-right"><%= row[:bottles].to_i %> (<%= pct %>%)</div>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="text-sm" style="color:var(--color-ink-light)">No vintage data available.</p>
+    <% end %>
+  </div>
+</div>

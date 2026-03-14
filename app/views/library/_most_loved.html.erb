@@ -1,0 +1,39 @@
+<div class="wine-card">
+  <div class="wine-card__body">
+    <h2 class="font-display text-lg font-semibold">Most loved wines</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+      <div>
+        <h3 class="font-medium text-sm">Most cellared</h3>
+        <% if @top_cellared_wines.any? %>
+          <ul class="space-y-2 mt-2">
+            <% @top_cellared_wines.each do |w| %>
+              <li class="flex items-center justify-between text-sm">
+                <span class="truncate"><%= "#{w.winery_name} - #{w.wine_name}" %></span>
+                <strong><%= w.bottles.to_i %></strong>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-sm" style="color:var(--color-ink-light)">No wines in cellar.</p>
+        <% end %>
+      </div>
+
+      <div>
+        <h3 class="font-medium text-sm">Most drunk</h3>
+        <% top_drank = @wine_totals.first(5) rescue [] %>
+        <% if top_drank.any? %>
+          <ul class="space-y-2 mt-2">
+            <% top_drank.each do |row| %>
+              <li class="flex items-center justify-between text-sm">
+                <span class="truncate"><%= "#{row.winery_name} - #{row.wine_name}" %></span>
+                <strong><%= row.bottles_drank.to_i %></strong>
+              </li>
+            <% end %>
+          </ul>
+        <% else %>
+          <p class="text-sm" style="color:var(--color-ink-light)">No consumption records yet.</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
