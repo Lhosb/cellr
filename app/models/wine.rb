@@ -18,7 +18,7 @@ class Wine < ApplicationRecord
   validates :winery, :name, presence: true
 
   pg_search_scope :search_text,
-                  against: { name: "A", varietal: "B", wine_type: "B" },
+                  against: { name: "A", varietal: "B", wine_type: "B", notes: "C", tasting_notes: "C" },
                   associated_against: { winery: :name, region_record: :name, tags: :name },
                   using: { tsearch: { prefix: true }, trigram: {} }
 

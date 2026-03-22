@@ -21,8 +21,8 @@ class LibraryControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :ok
     assert_match "Library", response.body
-    assert_match "Bottles Drank by Wine", response.body
-    assert_match "Bottles Drank by Winery", response.body
+    assert_match "Bottles Drunk by Wine", response.body
+    assert_match "Bottles Drunk by Winery", response.body
     assert_match "Troublemaker", response.body
     assert_match "Library Winery", response.body
     assert_no_match "Unknown / NV", response.body

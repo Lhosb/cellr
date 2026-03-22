@@ -10,7 +10,7 @@ class HappyHourControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Happy Hour", response.body
-    assert_match "No active Happy Hour sessions right now.", response.body
+    assert_match "No active Happy Hour sessions right now", response.body
   end
 
   test "show displays active sessions and currently drinking indicator" do
