@@ -48,7 +48,7 @@ class WinesController < ApplicationController
     Wines::TransitionState.new(wine: @wine, event: :drink, actor: current_user).call
 
     respond_to do |format|
-      format.html { redirect_to cellar_wine_path(@cellar, @wine), notice: "Cheers! Wine marked as drunk" }
+      format.html { redirect_to happy_hour_path, notice: "Cheers! Wine marked as drunk" }
       format.json { render json: @wine, status: :ok }
     end
   end

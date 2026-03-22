@@ -197,7 +197,7 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
       patch drink_cellar_wine_path(cellar, wine)
     end
 
-    assert_redirected_to cellar_wine_path(cellar, wine)
+    assert_redirected_to happy_hour_path
     wine.reload
     assert_equal "drunk", wine.state
     assert_not_nil wine.drunk_at

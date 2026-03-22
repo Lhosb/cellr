@@ -27,6 +27,42 @@
     <%= render "library/most_loved" %>
   </div>
 
+  <div class="wine-card">
+    <div class="wine-card__body space-y-2">
+      <h2 class="font-display text-lg font-semibold">Bottles Drunk by Wine</h2>
+      <% if @wine_totals.any? %>
+        <ul class="space-y-1">
+          <% @wine_totals.each do |row| %>
+            <li class="flex items-center justify-between text-sm">
+              <span class="truncate"><%= [row.winery_name, row.wine_name].compact_blank.join(" · ") %></span>
+              <strong><%= pluralize(row.bottles_drank.to_i, "bottle") %></strong>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-sm" style="color:var(--color-ink-light)">No consumption records yet.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="wine-card">
+    <div class="wine-card__body space-y-2">
+      <h2 class="font-display text-lg font-semibold">Bottles Drunk by Winery</h2>
+      <% if @winery_totals.any? %>
+        <ul class="space-y-1">
+          <% @winery_totals.each do |row| %>
+            <li class="flex items-center justify-between text-sm">
+              <span class="truncate"><%= row.winery_name %></span>
+              <strong><%= pluralize(row.bottles_drank.to_i, "bottle") %></strong>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="text-sm" style="color:var(--color-ink-light)">No consumption records yet.</p>
+      <% end %>
+    </div>
+  </div>
+
   <%= form_with url: library_path, method: :get, class: "wine-card" do |form| %>
     <div class="wine-card__body space-y-2">
       <h2 class="font-display text-lg font-semibold">Vintage Breakdown</h2>
