@@ -186,6 +186,20 @@ class WinesControllerTest < ActionDispatch::IntegrationTest
 
   # ── Drink ──
 
+  test "drink via turbo_stream transitions wine to drunk and does not raise" do
+    cellar = build_cellar(owner: @user)
+    wine = cellar.wines.create!(winery: winery_named("Domaine Leroy"), wine_name: "Musigny", vintage: 2015)
+
+    assert_difference("DrinkingRecord.count", 1) do
+      patch drink_cellar_wine_path(cellar, wine),
+        headers: { "Accept" => "text/vnd.turbo-stream.html, text/html, application/xhtml+xml" }
+    end
+
+    wine.reload
+    assert_equal "drunk", wine.state
+    assert_redirected_to happy_hour_path
+  end
+
   test "drink transitions wine to drunk state and records drunk_at" do
     cellar = build_cellar(owner: @user)
     wine = cellar.wines.create!(winery: winery_named("Domaine Leroy"), wine_name: "Musigny", vintage: 2015)
