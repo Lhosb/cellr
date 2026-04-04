@@ -1,14 +1,3 @@
 #!/bin/sh
 
-echo "Loading queue schema on $KAMAL_HOSTS..."
-docker run --rm \
-  --network kamal \
-  --env RAILS_ENV="production" \
-  --env DISABLE_DATABASE_ENVIRONMENT_CHECK=1 \
-  --env ADMIN_EMAIL="$ADMIN_EMAIL" \
-  --env-file .kamal/apps/cellr/env/roles/web.env \
-  --volume cellr_storage:/rails/storage \
-  $KAMAL_IMAGE \
-  bin/rails db:schema:load:queue
-
-echo "Queue schema loaded."
+echo "Booting app version $KAMAL_VERSION on $KAMAL_HOSTS..."
