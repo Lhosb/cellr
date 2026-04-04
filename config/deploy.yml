@@ -98,6 +98,8 @@ builder:
 # Use deploy user on the target host.
 ssh:
   user: deploy
+  keys:
+    - ~/.ssh/id_rsa_hetzner
 
 # Use accessory services (secrets come from .kamal/secrets).
 # accessories:
