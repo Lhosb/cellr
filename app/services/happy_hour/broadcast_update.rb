@@ -12,6 +12,8 @@ module HappyHour
         partial: "happy_hour/feed",
         locals: { active_sessions: sessions }
       )
+    rescue => e
+      Rails.logger.error("[HappyHour::BroadcastUpdate] Broadcast failed: #{e.class}: #{e.message}")
     end
   end
 end

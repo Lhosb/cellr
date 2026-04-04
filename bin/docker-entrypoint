@@ -3,6 +3,7 @@
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
   DISABLE_DATABASE_ENVIRONMENT_CHECK=1 ./bin/rails db:schema:load:queue
+  DISABLE_DATABASE_ENVIRONMENT_CHECK=1 ./bin/rails db:schema:load:cable
 fi
 
 exec "${@}"
