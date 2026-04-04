@@ -1,11 +1,7 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
-  # Solid Queue uses a schema file (db/queue_schema.rb) rather than migrations.
-  # db:prepare won't load it on an existing DB, so we load it explicitly.
-  # Queue tables are ephemeral so this is safe to run on every deploy.
   ./bin/rails db:schema:load:queue
 fi
 
