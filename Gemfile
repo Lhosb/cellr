@@ -60,7 +60,7 @@ group :development do
 end
 
 gem "tailwindcss-rails", "~> 4.7"
-gem "pg_search", "~> 2.3"
+gem "pg_search", "~> 2.4"
 gem "ruby-openai", "~> 8.3"
 
 gem "devise", "~> 5.0"
