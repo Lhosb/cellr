@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.1.2"
+gem "rails", "~> 8.1.4", ">= 8.1.4.1"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record
@@ -59,11 +59,11 @@ group :development do
   gem "web-console"
 end
 
-gem "tailwindcss-rails", "~> 4.4"
+gem "tailwindcss-rails", "~> 4.7"
 gem "pg_search", "~> 2.3"
 gem "ruby-openai", "~> 8.3"
 
 gem "devise", "~> 5.0"
 gem "flipper", "~> 1.3"
-gem "flipper-active_record", "~> 1.3"
-gem "noticed", "~> 2.8"
+gem "flipper-active_record", "~> 1.4"
+gem "noticed", "~> 3.1"
