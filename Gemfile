@@ -59,7 +59,7 @@ group :development do
   gem "web-console"
 end
 
-gem "tailwindcss-rails", "~> 4.4"
+gem "tailwindcss-rails", "~> 4.7"
 gem "pg_search", "~> 2.3"
 gem "ruby-openai", "~> 8.3"
 
