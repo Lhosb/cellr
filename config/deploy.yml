@@ -49,8 +49,8 @@ env:
 
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
-    # Disabled: no job classes exist yet, and continuous polling was keeping the Neon DB
-    # compute endpoint always-on, burning through its compute-time quota with no real work to do.
+    # Disabled: Active Job runs in-process (:async) in production, so no Solid Queue
+    # supervisor polls the Neon DB. puma.rb only starts the plugin when this is exactly "true".
     SOLID_QUEUE_IN_PUMA: false
 
     # Set number of processes dedicated to Solid Queue (default: 1)

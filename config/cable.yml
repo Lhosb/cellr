@@ -8,10 +8,10 @@ development:
 test:
   adapter: test
 
+# Production broadcasts are pushed in-process to the connected WebSockets: no
+# database polling (Solid Cable polled every 0.1s and kept Neon awake). This is only
+# correct while the app runs as ONE Puma process on ONE server. If WEB_CONCURRENCY
+# goes above 1 or a second server is added, switch to the `postgresql` adapter
+# (LISTEN/NOTIFY, still push-based) or `redis`.
 production:
-  adapter: solid_cable
-  connects_to:
-    database:
-      writing: cable
-  polling_interval: 0.1.seconds
-  message_retention: 1.day
+  adapter: async
